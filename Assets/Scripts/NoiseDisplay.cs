@@ -7,7 +7,7 @@ public class NoiseDisplay : MonoBehaviour
 {
     public GameObject noiseDisplay;
     public GameObject chunkPrefab;
-    public Material chunkMaterial;
+    public Material oneTextureMaterial;
 
     public void DrawHeightMap(float[,] noiseMap)
     {
@@ -66,7 +66,7 @@ public class NoiseDisplay : MonoBehaviour
         noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
     }
 
-    public GameObject DrawTerrainChunk(Mesh terrainMesh, float[,] noiseMap, Vector2 coord, MapGenerator.TerrainType[] regions)
+    public GameObject DrawTerrainChunkWithColorMap(Mesh terrainMesh, float[,] noiseMap, Vector2 coord, MapGenerator.TerrainType[] regions)
     {
         if (noiseDisplay.activeInHierarchy) 
             noiseDisplay.SetActive(false);
@@ -81,7 +81,7 @@ public class NoiseDisplay : MonoBehaviour
         return chunk;
     }
 
-    public GameObject DrawTerrainChunkMesh(Mesh terrainMesh, float[,] noiseMap, Vector2 coord)
+    public GameObject DrawTerrainChunkMeshWithCustomMaterial(Mesh terrainMesh, float[,] noiseMap, Vector2 coord)
     {
         if (noiseDisplay.activeInHierarchy)
             noiseDisplay.SetActive(false);

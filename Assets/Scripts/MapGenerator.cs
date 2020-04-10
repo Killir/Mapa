@@ -7,7 +7,7 @@ using UnityEngine;
 public class MapGenerator : MonoBehaviour
 {
 
-    public enum DrawType { heightMap, colorMap, terrain, terrain_colorMap}
+    public enum DrawType { heightMap, colorMap, terrain_customMaterial, terrain_colorMap}
     const int borderSize = 1;
 
     [Header ("Map parameters")]
@@ -57,19 +57,19 @@ public class MapGenerator : MonoBehaviour
         return noiseMap;
     }
 
-    GameObject GenerateChunk(float[,] noiseMap, Vector2 coord, bool meshOnly)
+    GameObject GenerateChunk(float[,] noiseMap, Vector2 coord)
     {
         GameObject chunk = null;
-        if (meshOnly) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkMesh(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord);
-        } else {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunk(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord, regions);
+        if (drawMode == DrawType.terrain_customMaterial) {
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkMeshWithCustomMaterial(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord);
+        } else if (drawMode == DrawType.terrain_colorMap) {
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord, regions);
         }
 
         return chunk;
     }
 
-    void SetTerrainMap(bool meshOnly)
+    void SetTerrainMap()
     {
         Dictionary<Vector2, float[,]> noiseMapDictionary = new Dictionary<Vector2, float[,]>();
         List<Vector2> coordList = new List<Vector2>();
@@ -85,7 +85,7 @@ public class MapGenerator : MonoBehaviour
         foreach(Vector2 v in coordList) {
             noiseMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(noiseMapDictionary[v]);
             noiseMapDictionary[v] = SetNoiseFilters(noiseMapDictionary[v]);
-            terrainDataDictionary.Add(v, new TerrainData(GenerateChunk(noiseMapDictionary[v], v, meshOnly), v));
+            terrainDataDictionary.Add(v, new TerrainData(GenerateChunk(noiseMapDictionary[v], v), v));
         }
 
     }
@@ -116,11 +116,8 @@ public class MapGenerator : MonoBehaviour
                 noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap);
                 FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, regions);
                 break;
-            case DrawType.terrain:
-                SetTerrainMap(true);
-                break;
-            case DrawType.terrain_colorMap:
-                SetTerrainMap(false);
+            default:
+                SetTerrainMap();
                 break;
 
         }
@@ -156,7 +153,6 @@ public class TerrainData
 {
     public GameObject terrainGameObject;
     public Vector2 coord;
-    float[,] heightMap;
 
     public TerrainData(GameObject terrainGameObject, Vector2 coord)
     {
