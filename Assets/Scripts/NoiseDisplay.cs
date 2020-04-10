@@ -7,6 +7,7 @@ public class NoiseDisplay : MonoBehaviour
 {
     public GameObject noiseDisplay;
     public GameObject chunkPrefab;
+    public RegionMap regionMap;
     public Material oneTextureMaterial;
 
     public void DrawHeightMap(float[,] noiseMap)
@@ -30,7 +31,7 @@ public class NoiseDisplay : MonoBehaviour
         noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
     }
 
-    private Texture2D GenerateColorTexture(float[,] noiseMap, float[,] humidityMap, TerrainType[] regions)
+    private Texture2D GenerateColorTexture(float[,] noiseMap, float[,] humidityMap)
     {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
@@ -39,14 +40,18 @@ public class NoiseDisplay : MonoBehaviour
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                for (int i = 0; i < regions.Length; i++) {
 
+                /*int heightIndex, humadityIndex;
+                for (int i = 0; i < regions.Length; i++) {
                     if (noiseMap[x, y] >= regions[i].height) {
-                        texture.SetPixel(x, y, regions[i].color);
-                    } else {
-                        break;
+                        heightIndex = i;
                     }
-                }
+                    if (humidityMap[x, y] >= regions[i].height) {
+                        humadityIndex = i;
+                    }
+                }*/
+
+                //texture.SetPixel(x, y, regions[index].color);
             }
         }
 
@@ -57,21 +62,21 @@ public class NoiseDisplay : MonoBehaviour
         return texture;
     }
 
-    public void DrawColorMap(float[,] noiseMap, float[,] humidityMap, TerrainType[] regions)
+    public void DrawColorMap(float[,] noiseMap, float[,] humidityMap)
     {
         noiseDisplay.SetActive(true);
 
-        Texture2D texture = GenerateColorTexture(noiseMap, humidityMap, regions);
+        Texture2D texture = GenerateColorTexture(noiseMap, humidityMap);
         noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
     }
 
-    public GameObject DrawTerrainChunkWithColorMap(Mesh terrainMesh, float[,] noiseMap, float[,] humidityMap, Vector2 coord, TerrainType[] regions)
+    public GameObject DrawTerrainChunkWithColorMap(Mesh terrainMesh, float[,] noiseMap, float[,] humidityMap, Vector2 coord)
     {
         if (noiseDisplay.activeInHierarchy) 
             noiseDisplay.SetActive(false);
 
         GameObject chunk = Instantiate(chunkPrefab, new Vector3(coord.x, 0f, coord.y), Quaternion.identity);
-        Texture2D texture = GenerateColorTexture(noiseMap, humidityMap, regions);
+        Texture2D texture = GenerateColorTexture(noiseMap, humidityMap);
 
         chunk.name = "Chunk " + coord.ToString();
         chunk.GetComponent<MeshFilter>().mesh = terrainMesh;

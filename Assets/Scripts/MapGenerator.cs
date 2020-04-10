@@ -18,7 +18,6 @@ public class MapGenerator : MonoBehaviour
     public int chunkSize;
     [Range(0, 5)]
     public int levelOfDetail;
-    public TerrainType[] regions;
 
     [Header("Display parameters")]
     public AnimationCurve heightCurve;
@@ -69,7 +68,7 @@ public class MapGenerator : MonoBehaviour
         if (drawMode == DrawType.terrain_customMaterial) {
             chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithCustomMaterial(terrainMesh, heightMap, humidityMap, coord);
         } else if (drawMode == DrawType.terrain_colorMap) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord, regions);
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord);
         }
 
         return chunk;
@@ -124,7 +123,7 @@ public class MapGenerator : MonoBehaviour
                 noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
                 noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
                 float[,] humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
-                FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, humidityMap, regions);
+                FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, humidityMap);
                 break;
             default:
                 SetTerrainMap();
@@ -149,13 +148,6 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-}
-[System.Serializable]
-public class TerrainType
-{
-    public string name;
-    public float height;
-    public Color color;
 }
 
 public class TerrainData
