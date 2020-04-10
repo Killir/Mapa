@@ -6,9 +6,11 @@ using UnityEngine;
 public static class NoiseGenerator
 {
 
+    const int noiseMapsCount = 8;
+
     static int seed;
-    static float maxNoiseValue;
-    static float minNoiseValue;
+    static float[] maxNoiseValues = new float[noiseMapsCount];
+    static float[] minNoiseValues = new float[noiseMapsCount];
 
     public static float[,] GenerateNoiseMap(int width, int height, int LOD, NoiseData nd, Vector2 offset) 
     {
@@ -43,11 +45,11 @@ public static class NoiseGenerator
                 
                 noiseMap[x, y] = value;
 
-                if (value > maxNoiseValue) {
-                    maxNoiseValue = value;
+                if (value > maxNoiseValues[nd.noiseIndex]) {
+                    maxNoiseValues[nd.noiseIndex] = value;
                 }
-                if (value < minNoiseValue) {
-                    minNoiseValue = value;
+                if (value < minNoiseValues[nd.noiseIndex]) {
+                    minNoiseValues[nd.noiseIndex] = value;
                 }
             }
         }
@@ -55,14 +57,14 @@ public static class NoiseGenerator
         return noiseMap;
     }
 
-    public static float[,] NormilazeNoiseMap(float[,] noiseMap)
+    public static float[,] NormilazeNoiseMap(float[,] noiseMap, int noiseIndex)
     {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                noiseMap[x, y] = Mathf.InverseLerp(minNoiseValue, maxNoiseValue, noiseMap[x, y]);
+                noiseMap[x, y] = Mathf.InverseLerp(minNoiseValues[noiseIndex], maxNoiseValues[noiseIndex], noiseMap[x, y]);
             }
         }
         return noiseMap;
@@ -75,8 +77,10 @@ public static class NoiseGenerator
 
     public static void ClearMaxMinValue()
     {
-        maxNoiseValue = float.MinValue;
-        minNoiseValue = float.MaxValue;
+        for (int i = 0; i < noiseMapsCount; i++) {
+            maxNoiseValues[i] = float.MinValue;
+            minNoiseValues[i] = float.MaxValue;
+        }
     }
 
     #region NoiseFilters

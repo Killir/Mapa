@@ -11,6 +11,8 @@ public class NoiseData : ScriptableObject
     [Range(0f, 1f)]
     public float persistance;
     public float lacunarity;
+    [Range(0, 7)]
+    public int noiseIndex;
 
     private void OnValidate()
     {

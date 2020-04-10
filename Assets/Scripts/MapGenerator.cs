@@ -36,6 +36,10 @@ public class MapGenerator : MonoBehaviour
     public NoiseData heightNoiseData;
     public float heightMultiplier;
 
+    [Header("Humidity noise parameters")]
+    public NoiseData humidityNoiseData;
+
+
     [Header ("Noise Display parameters")]
     public DrawType drawMode;
     public bool autoUpdate;
@@ -60,10 +64,12 @@ public class MapGenerator : MonoBehaviour
     GameObject GenerateChunk(float[,] noiseMap, Vector2 coord)
     {
         GameObject chunk = null;
+        Mesh terrainMesh = TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD);
+
         if (drawMode == DrawType.terrain_customMaterial) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkMeshWithCustomMaterial(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord);
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithCustomMaterial(terrainMesh, noiseMap, coord);
         } else if (drawMode == DrawType.terrain_colorMap) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD), noiseMap, coord, regions);
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, noiseMap, coord, regions);
         }
 
         return chunk;
@@ -83,7 +89,7 @@ public class MapGenerator : MonoBehaviour
         }
 
         foreach(Vector2 v in coordList) {
-            noiseMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(noiseMapDictionary[v]);
+            noiseMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(noiseMapDictionary[v], heightNoiseData.noiseIndex);
             noiseMapDictionary[v] = SetNoiseFilters(noiseMapDictionary[v]);
             terrainDataDictionary.Add(v, new TerrainData(GenerateChunk(noiseMapDictionary[v], v), v));
         }
@@ -108,12 +114,12 @@ public class MapGenerator : MonoBehaviour
         switch (drawMode) {
             case DrawType.heightMap:
                 float[,] noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
-                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap);
+                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
                 FindObjectOfType<NoiseDisplay>().DrawHeightMap(noiseMap);
                 break;
             case DrawType.colorMap:
                 noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
-                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap);
+                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
                 FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, regions);
                 break;
             default:

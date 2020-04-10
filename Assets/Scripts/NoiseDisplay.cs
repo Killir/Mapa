@@ -60,8 +60,6 @@ public class NoiseDisplay : MonoBehaviour
     {
         noiseDisplay.SetActive(true);
 
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
         Texture2D texture = GenerateColorTexture(noiseMap, regions);
         noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
     }
@@ -81,7 +79,7 @@ public class NoiseDisplay : MonoBehaviour
         return chunk;
     }
 
-    public GameObject DrawTerrainChunkMeshWithCustomMaterial(Mesh terrainMesh, float[,] noiseMap, Vector2 coord)
+    public GameObject DrawTerrainChunkWithCustomMaterial(Mesh terrainMesh, float[,] noiseMap, Vector2 coord)
     {
         if (noiseDisplay.activeInHierarchy)
             noiseDisplay.SetActive(false);
