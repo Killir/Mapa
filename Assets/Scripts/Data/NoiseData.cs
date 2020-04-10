@@ -11,6 +11,7 @@ public class NoiseData : ScriptableObject
     [Range(0f, 1f)]
     public float persistance;
     public float lacunarity;
+    public Vector2 offset;
     [Range(0, 7)]
     public int noiseIndex;
 

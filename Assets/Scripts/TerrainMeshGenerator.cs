@@ -35,6 +35,7 @@ public static class TerrainMeshGenerator
                 float x = i / (float)LOD;
                 float z = j / (float)LOD;
                 int vertIndex = vertIndicesMap[i, j];
+
                 float value = heightCurve.Evaluate(noiseMap[i, j]) * heightMultiplier;
 
                 if (vertIndex < 0) {

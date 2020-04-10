@@ -61,15 +61,15 @@ public class MapGenerator : MonoBehaviour
         return noiseMap;
     }
 
-    GameObject GenerateChunk(float[,] noiseMap, Vector2 coord)
+    GameObject GenerateChunk(float[,] heightMap, float[,] humidityMap, Vector2 coord)
     {
         GameObject chunk = null;
-        Mesh terrainMesh = TerrainMeshGenerator.CreateTerrain(noiseMap, heightMultiplier, heightCurve, LOD);
+        Mesh terrainMesh = TerrainMeshGenerator.CreateTerrain(heightMap, heightMultiplier, heightCurve, LOD);
 
         if (drawMode == DrawType.terrain_customMaterial) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithCustomMaterial(terrainMesh, noiseMap, coord);
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithCustomMaterial(terrainMesh, heightMap, humidityMap, coord);
         } else if (drawMode == DrawType.terrain_colorMap) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, noiseMap, coord, regions);
+            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord, regions);
         }
 
         return chunk;
@@ -77,21 +77,24 @@ public class MapGenerator : MonoBehaviour
 
     void SetTerrainMap()
     {
-        Dictionary<Vector2, float[,]> noiseMapDictionary = new Dictionary<Vector2, float[,]>();
+        Dictionary<Vector2, float[,]> heightMapDictionary = new Dictionary<Vector2, float[,]>();
+        Dictionary<Vector2, float[,]> humidityMapDictionary = new Dictionary<Vector2, float[,]>();
         List<Vector2> coordList = new List<Vector2>();
         float borderShift = (float)(borderSize * 3) / LOD; // почему 3? хз!
         for (int z = 0; z < mapSizeZ; z++) {
             for (int x = 0; x < mapSizeX; x++) {
                 Vector2 coord = new Vector2(x * (chunkSize - borderShift), z * (chunkSize - borderShift));
                 coordList.Add(coord);
-                noiseMapDictionary.Add(coord, GetNoiseMap(heightNoiseData, coord));
+                heightMapDictionary.Add(coord, GetNoiseMap(heightNoiseData, coord + heightNoiseData.offset));
+                humidityMapDictionary.Add(coord, GetNoiseMap(humidityNoiseData, coord + humidityNoiseData.offset));
             }
         }
 
         foreach(Vector2 v in coordList) {
-            noiseMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(noiseMapDictionary[v], heightNoiseData.noiseIndex);
-            noiseMapDictionary[v] = SetNoiseFilters(noiseMapDictionary[v]);
-            terrainDataDictionary.Add(v, new TerrainData(GenerateChunk(noiseMapDictionary[v], v), v));
+            heightMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(heightMapDictionary[v], heightNoiseData.noiseIndex);
+            heightMapDictionary[v] = SetNoiseFilters(heightMapDictionary[v]);
+            humidityMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(humidityMapDictionary[v], humidityNoiseData.noiseIndex);
+            terrainDataDictionary.Add(v, new TerrainData(GenerateChunk(heightMapDictionary[v], humidityMapDictionary[v], v), v));
         }
 
     }
@@ -120,7 +123,8 @@ public class MapGenerator : MonoBehaviour
             case DrawType.colorMap:
                 noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
                 noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
-                FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, regions);
+                float[,] humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
+                FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, humidityMap, regions);
                 break;
             default:
                 SetTerrainMap();
@@ -135,14 +139,6 @@ public class MapGenerator : MonoBehaviour
         NoiseGenerator.SetSeed(seed);
     }
 
-    [System.Serializable]
-    public struct TerrainType
-    {
-        public string name;
-        public float height;
-        public Color color;
-    }
-
     private void OnValidate()
     { 
         if (heightMultiplier < 0) {
@@ -153,6 +149,13 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+}
+[System.Serializable]
+public class TerrainType
+{
+    public string name;
+    public float height;
+    public Color color;
 }
 
 public class TerrainData
