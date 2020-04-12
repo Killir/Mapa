@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(RegionMap))]
 public class RegionMapEditor : Editor
 {
+
+    RegionMap serializableObject;
+
     public override void OnInspectorGUI()
     {
-        RegionMap serializableObject = (RegionMap)target;
+        serializableObject = (RegionMap)target;
 
         List<string> regionsNames = new List<string>();
         if (serializableObject.regions.Count > 0) {
@@ -27,7 +29,6 @@ public class RegionMapEditor : Editor
                 EditorGUILayout.BeginVertical("box");
 
                 hd.name = EditorGUILayout.TextField("Name", hd.name);
-                hd.level = EditorGUILayout.IntField("Level", hd.level);
 
                 if (hd.includedRegions.Count > 0) {     // Included regions
 
@@ -36,6 +37,7 @@ public class RegionMapEditor : Editor
                         GUILayout.BeginHorizontal();
 
                         hd.includedRegions[i].index = EditorGUILayout.Popup(hd.includedRegions[i].index, regionsNames.ToArray(), GUILayout.Width(Screen.width - 100));
+                        hd.includedRegions[i].SetRegion(serializableObject.regions[hd.includedRegions[i].index]);
 
                         if (GUILayout.Button("Delete", GUILayout.Width(50))) {
                             hd.includedRegions.RemoveAt(i);
@@ -47,12 +49,13 @@ public class RegionMapEditor : Editor
 
                 GUILayout.Space(5);
                 if (GUILayout.Button("Add", GUILayout.Width(50))) {
-                    hd.includedRegions.Add(new HumidityData.IncludedRegion());
+                    hd.includedRegions.Add(new IncludedRegion());
                 }
 
                 GUILayout.Space(15);
                 if (GUILayout.Button("Delete humidity level")) {
                     serializableObject.humidityLevels.Remove(hd);
+                    serializableObject.UpdateIndices();
                     break;
                 }
 
@@ -64,26 +67,52 @@ public class RegionMapEditor : Editor
 
         GUILayout.Space(5);
         if (GUILayout.Button("Add humidity level")) {
-            serializableObject.humidityLevels.Add(new HumidityData());
+            serializableObject.humidityLevels.Add(new HumidityData(serializableObject.humidityLevels.Count));
+        }
+
+        if (GUILayout.Button("Log")) {
+            serializableObject.LogHumidityLevels();
         }
 
         GUILayout.Space(50);
 
         if (serializableObject.regions.Count > 0) { //Regions
 
-            foreach (RegionData region in serializableObject.regions) {
+            int regionCount = serializableObject.regions.Count;
+            for (int i = 0; i < regionCount; i++) {
+                RegionData region = serializableObject.regions[i];
 
                 EditorGUILayout.BeginVertical("box");
 
                 region.name = EditorGUILayout.TextField("Name", region.name);
                 region.height = EditorGUILayout.Slider("Height", region.height, 0f, 1f);
-                region.humidityId = EditorGUILayout.IntField("Humidity ID", region.humidityId);
                 region.color = EditorGUILayout.ColorField("Color", region.color);
 
+                GUILayout.Space(15);
+
+                EditorGUILayout.BeginHorizontal();
+
+                if (i > 0) {
+                    if (GUILayout.Button("Up", GUILayout.Width(50))) {
+                        serializableObject.SwapRegionUp(i);
+                    }
+                } else GUILayout.Space(52);
+
+                if (i < regionCount - 1) {
+                    if (GUILayout.Button("Down", GUILayout.Width(50))) {
+                        serializableObject.SwapRegionDown(i);
+                    }
+                } else GUILayout.Space(52);
+
+                GUILayout.Space(Screen.width - 200);
+
+                
                 if (GUILayout.Button("Delete", GUILayout.Width(50))) {
-                    serializableObject.regions.Remove(region);
+                    serializableObject.DeleteRegion(region);
                     break;
                 }
+
+                EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.EndVertical();
             }
@@ -94,7 +123,6 @@ public class RegionMapEditor : Editor
         if (GUILayout.Button("Add region")) {
             serializableObject.regions.Add(new RegionData());
         }
-
 
         if (GUI.changed) {
             EditorUtility.SetDirty(serializableObject);

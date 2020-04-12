@@ -10,10 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a21a9f7d8870f045805d907259ed3bb, type: 3}
-  m_Name: Humidity noise map
+  m_Name: Humidity noise data
   m_EditorClassIdentifier: 
   scale: 100
-  octaves: 5
+  octaves: 3
   persistance: 0.5
   lacunarity: 2
+  offset: {x: 500, y: 5500}
   noiseIndex: 1

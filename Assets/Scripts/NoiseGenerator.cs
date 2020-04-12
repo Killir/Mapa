@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public static class NoiseGenerator
@@ -18,6 +17,7 @@ public static class NoiseGenerator
         float[,] noiseMap = new float[width * LOD, height * LOD];
         width *= LOD;
         height *= LOD;
+        offset += nd.offset;
         float halfWidth = width / 2f;
         float halfHeight = height / 2f;
 

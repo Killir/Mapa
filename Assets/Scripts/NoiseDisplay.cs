@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class NoiseDisplay : MonoBehaviour
 {
@@ -31,27 +30,17 @@ public class NoiseDisplay : MonoBehaviour
         noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
     }
 
-    private Texture2D GenerateColorTexture(float[,] noiseMap, float[,] humidityMap)
+    private Texture2D GenerateColorTexture(float[,] heightMap, float[,] humidityMap)
     {
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
+        int width = heightMap.GetLength(0);
+        int height = heightMap.GetLength(1);
 
         Texture2D texture = new Texture2D(width, height);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-
-                /*int heightIndex, humadityIndex;
-                for (int i = 0; i < regions.Length; i++) {
-                    if (noiseMap[x, y] >= regions[i].height) {
-                        heightIndex = i;
-                    }
-                    if (humidityMap[x, y] >= regions[i].height) {
-                        humadityIndex = i;
-                    }
-                }*/
-
-                //texture.SetPixel(x, y, regions[index].color);
+                RegionData currentRegion = regionMap.Evaluate(heightMap[x, y], humidityMap[x, y]);
+                texture.SetPixel(x, y, currentRegion.color);
             }
         }
 
