@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Humidity noise data
   m_EditorClassIdentifier: 
   scale: 100
-  octaves: 3
-  persistance: 0.5
-  lacunarity: 2
+  octaves: 5
+  persistance: 0.4
+  lacunarity: 3
   offset: {x: 500, y: 5500}
   noiseIndex: 1
