@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Data\NoiseData.cs" />
+    <Compile Include="Assets\Scripts\Erosion.cs" />
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\NoiseDisplay.cs" />
     <Compile Include="Assets\Scripts\NoiseGenerator.cs" />

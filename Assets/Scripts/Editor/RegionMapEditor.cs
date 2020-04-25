@@ -22,13 +22,18 @@ public class RegionMapEditor : Editor
         }
 
         if (serializableObject.humidityLevels.Count > 0) { // humidity levels
+            
             for (int j = 0; j < serializableObject.humidityLevels.Count; j++)  {
 
                 HumidityData hd = serializableObject.humidityLevels[j];
 
                 EditorGUILayout.BeginVertical("box");
 
+                //GUILayout.BeginHorizontal();
+                hd.isActive = EditorGUILayout.Toggle(hd.isActive);
+                serializableObject.UpdateIndices();
                 hd.name = EditorGUILayout.TextField("Name", hd.name);
+                //GUILayout.EndHorizontal();
 
                 if (hd.includedRegions.Count > 0) {     // Included regions
 
@@ -50,6 +55,7 @@ public class RegionMapEditor : Editor
                 GUILayout.Space(5);
                 if (GUILayout.Button("Add", GUILayout.Width(50))) {
                     hd.includedRegions.Add(new IncludedRegion());
+                    serializableObject.UpdateIndices();
                 }
 
                 GUILayout.Space(15);
@@ -72,6 +78,10 @@ public class RegionMapEditor : Editor
 
         if (GUILayout.Button("Log")) {
             serializableObject.LogHumidityLevels();
+        }
+
+        if (GUILayout.Button("Update")) {
+            serializableObject.UpdateIndices();
         }
 
         GUILayout.Space(50);

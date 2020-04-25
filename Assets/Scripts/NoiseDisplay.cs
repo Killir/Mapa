@@ -19,7 +19,7 @@ public class NoiseDisplay : MonoBehaviour
         Texture2D texture = new Texture2D(width, height);
 
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x <width; x++) {
+            for (int x = 0; x < width; x++) {
                 texture.SetPixel(x, y, Color.Lerp(Color.black, Color.white, noiseMap[x, y]));
             }
         }

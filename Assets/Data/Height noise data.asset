@@ -16,3 +16,5 @@ MonoBehaviour:
   octaves: 10
   persistance: 0.58
   lacunarity: 2
+  offset: {x: 0, y: 0}
+  noiseIndex: 0

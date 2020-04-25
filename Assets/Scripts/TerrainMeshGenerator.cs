@@ -17,6 +17,7 @@ public static class TerrainMeshGenerator
 
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
+                
                 bool isBorderedVertices = i == 0 || i == width - 1 || j == 0 || j == height - 1;
                 if (isBorderedVertices) {
                     vertIndicesMap[i, j] = borderedVertIndex;
@@ -26,10 +27,10 @@ public static class TerrainMeshGenerator
                     meshVertIndex++;
                 }
             }
-        } 
+        }
 
-        for (int j = 0; j < height; j++ ) {
-            for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {                     
 
                 float x = i / (float)LOD;
                 float z = j / (float)LOD;

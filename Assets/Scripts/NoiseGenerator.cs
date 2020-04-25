@@ -29,8 +29,8 @@ public static class NoiseGenerator
         }
 
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-
+            for (int x = 0; x < width; x++) {           
+            
                 float value = 0;
                 float amplitude = 1;
                 float frequency = 1;

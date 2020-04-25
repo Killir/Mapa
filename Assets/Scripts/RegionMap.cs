@@ -11,10 +11,17 @@ public class RegionMap : MonoBehaviour
     {
         RegionData region = new RegionData();
         List<RegionData> currentHumidityLevelRegions = new List<RegionData>();
-        int humiditylevelIndex = Mathf.RoundToInt(Mathf.Lerp(0f, humidityLevels.Count - 1, humidity));
+
+        int humidityLevelCount = -1;
+        foreach(HumidityData hd in humidityLevels) {
+            if (hd.isActive) {
+                humidityLevelCount++;
+            }
+        }
+        int humiditylevelIndex = Mathf.RoundToInt(Mathf.Lerp(0f, humidityLevelCount, humidity));
 
         foreach (HumidityData hd in humidityLevels) {
-            if (hd.GetIndex() == humiditylevelIndex) {
+            if (hd.GetIndex() == humiditylevelIndex && hd.isActive) {
                 foreach (IncludedRegion incReg in hd.includedRegions) {
                     currentHumidityLevelRegions.Add(incReg.GetRegion());
                 }
@@ -39,8 +46,10 @@ public class RegionMap : MonoBehaviour
     {
         int i = 0;
         foreach(HumidityData hd in humidityLevels) {
-            hd.SetIndex(i);
-            i++;
+            if (hd.isActive) {
+                hd.SetIndex(i);
+                i++;
+            }
         }
     }
 
@@ -61,9 +70,6 @@ public class RegionMap : MonoBehaviour
         RegionData temp = regions[index];
         regions[index] = regions[index + 1];
         regions[index + 1] = temp;
-
-        UpdateIndices();
-
     }
 
     public void SwapRegionUp(int index)
@@ -72,16 +78,13 @@ public class RegionMap : MonoBehaviour
         RegionData temp = regions[index];
         regions[index] = regions[index - 1];
         regions[index - 1] = temp;
-
-        UpdateIndices();
-
     }
 
     List<RegionData> SortRegionDataList(List<RegionData> list)
     {
         for (int i = 0; i < list.Count; i++) {
             for (int j = 0; j < list.Count - (i + 1); j++) {
-                if (list[j].height > list[j+1].height) {
+                if (list[j].height > list[j + 1].height) {
                     RegionData temp = list[j];
                     list[j] = list[j + 1];
                     list[j + 1] = temp;
@@ -95,10 +98,11 @@ public class RegionMap : MonoBehaviour
     public void LogHumidityLevels()
     {
         foreach (HumidityData hd in humidityLevels) {
-            string s = hd.name;
-            s += "\n" + "Index: " + hd.GetIndex().ToString();
-            s += "\n" + "Included regions count: " + hd.includedRegions.Count.ToString();
-            Debug.Log(s);
+            string log = hd.name;
+            log += "\n" + "Index: " + hd.GetIndex().ToString();
+            log += "\n" + "Is active: " + hd.isActive;
+            log += "\n" + "Included regions count: " + hd.includedRegions.Count.ToString();
+            Debug.Log(log);
         }
     }
 
@@ -108,6 +112,7 @@ public class RegionMap : MonoBehaviour
 public class HumidityData
 {
     public string name;
+    public bool isActive = true;
     int index;
     public List<IncludedRegion> includedRegions = new List<IncludedRegion>();
 
@@ -148,7 +153,7 @@ public class IncludedRegion
 [System.Serializable]
 public class RegionData
 {
-    public string name;
+    public string name = "Choose region";
     public float height;
     public Color color;
 }

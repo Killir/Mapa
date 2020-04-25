@@ -23,6 +23,8 @@ public class MapGenerator : MonoBehaviour
 
     [Header ("Global noise parameters")]
     public int seed;
+    public bool erode;
+    public Erosion erosion;
 
     [Space(20)]
     public bool cascadeNoiseFilter;
@@ -47,6 +49,9 @@ public class MapGenerator : MonoBehaviour
 
     private float[,] SetNoiseFilters(float [,] noiseMap)
     {
+        if (erode) {
+            noiseMap = erosion.Erode(seed, noiseMap);
+        }
         if (cascadeNoiseFilter) {
             noiseMap = NoiseGenerator.CascadeNoiseFilter(noiseMap, cascadeCount, heightMultiplier, CNFintensity);
         }
@@ -80,7 +85,8 @@ public class MapGenerator : MonoBehaviour
         List<Vector2> coordList = new List<Vector2>();
         float borderShift = (float)(borderSize * 3) / LOD; // почему 3? хз!
         for (int z = 0; z < mapSizeZ; z++) {
-            for (int x = 0; x < mapSizeX; x++) {
+            for (int x = 0; x < mapSizeX; x++) {           
+            
                 Vector2 coord = new Vector2(x * (chunkSize - borderShift), z * (chunkSize - borderShift));
                 coordList.Add(coord);
                 heightMapDictionary.Add(coord, GetNoiseMap(heightNoiseData, coord));
