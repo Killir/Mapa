@@ -14,9 +14,9 @@ public static class NoiseGenerator
     public static float[,] GenerateNoiseMap(int width, int height, int LOD, NoiseData nd, Vector2 offset) 
     {
         System.Random prng = new System.Random(seed);
-        float[,] noiseMap = new float[width * LOD, height * LOD];
         width *= LOD;
         height *= LOD;
+        float[,] noiseMap = new float[width, height];
         offset += nd.offset;
         float halfWidth = width / 2f;
         float halfHeight = height / 2f;

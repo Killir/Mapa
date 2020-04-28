@@ -52,7 +52,6 @@ public static class TerrainMeshGenerator
             }
         }
 
-        Debug.Log("Verticles count: " + meshVertIndex.ToString());
         return meshData;
     }
 

@@ -1,7 +1,5 @@
-﻿using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class Erosion : MonoBehaviour
@@ -10,8 +8,7 @@ public class Erosion : MonoBehaviour
     public int iterationCount;
     public int particleLifetime;
     [Space(10)]
-    [Range(0f, 1f)]
-    public float inertia;
+
     [Range(0f, 1f)]
     public float depositionRate;
     [Range(0f, 1f)]
@@ -22,42 +19,63 @@ public class Erosion : MonoBehaviour
     public float[,] Erode(int seed, float[,] heightMap)
     {
         System.Random prng = new System.Random(seed);
-        int width = heightMap.GetLength(0) - 1;
-        int height = heightMap.GetLength(1) - 1;
+        int width = heightMap.GetLength(0) - 2;
+        int height = heightMap.GetLength(1) - 2;
 
         for (int i = 0; i < iterationCount; i++) {
-            Vector2 currentPosition = new Vector2(prng.Next(1, width), prng.Next(1, height));
-            Particle particle = new Particle(currentPosition, startVolume);
+            Vector2 position = new Vector2(prng.Next(1, width), prng.Next(1, height));
+            Particle particle = new Particle(position, startVolume);
 
-            for (int k = 0; k < particleLifetime; k++) {
-                currentPosition = particle.GetPosition();
-
-                Vector2 gradient = CalculatePointGradient(heightMap, particle.GetPosition().x, particle.GetPosition().y);
-                Vector2 speed = particle.GetSpeed() + (gradient / particle.GetVolume());
-                particle.SetSpeed(speed);
-                particle.SetPosition(currentPosition + speed);
-
-                if (speed.magnitude == 0) {
-                    break;
-                }
-                if (particle.GetPosition().x < 1 || particle.GetPosition().x > width || particle.GetPosition().y < 1 || particle.GetPosition().y > height) {
-                    break;
-                }
-
-                float heightDiff = heightMap[(int)currentPosition.x, (int)currentPosition.y] - heightMap[(int)particle.GetPosition().x, (int)particle.GetPosition().y];
-                float capasity = particle.GetVolume() * speed.magnitude * heightDiff;
-                if (capasity < 0) {
-                    capasity = 0f;
-                }
-                float capasityDiff = capasity - particle.GetSediment() * depositionRate;
-                particle.SetSediment(particle.GetSediment() + capasityDiff);
-                heightMap[(int)currentPosition.x, (int)currentPosition.y] -= capasityDiff;
-
-                particle.SetVolume(particle.GetVolume() * (1 - evaporationRate));
-            }
+            SimulateParticle(heightMap, particle, particleLifetime);
         }
 
         return heightMap;
+    }
+
+    void SimulateParticle(float[,] heightMap, Particle particle, int lifetime)
+    {
+        int width = heightMap.GetLength(0) - 1;
+        int height = heightMap.GetLength(1) - 1;
+
+        for (int i = 0; i < lifetime; i++) {
+            Vector2 currentPosition = particle.GetPosition();
+            float currentHeight = heightMap[(int)currentPosition.x, (int)currentPosition.y];
+
+            Vector2 gradient = CalculatePointGradient(heightMap, currentPosition.x, currentPosition.y);
+            Vector2 speed = particle.GetSpeed() + gradient / particle.GetVolume();
+            if (speed.magnitude == 0) {
+                break;
+            }
+            Vector2 nextPosition = currentPosition + speed;
+
+            bool outOfHeightMap = nextPosition.x < 1 || nextPosition.x >= width || nextPosition.y < 1 || nextPosition.y >= height;
+            if (outOfHeightMap) {
+                break;
+            }
+
+            float nextHeight = heightMap[(int)nextPosition.x, (int)nextPosition.y];
+            float heightDiff = currentHeight - nextHeight;
+            float capasity = particle.GetVolume() * speed.magnitude * heightDiff;
+            if (capasity < 0) {
+                capasity = 0f;
+            }
+            float capasityDiff = capasity - particle.GetSediment() * depositionRate;
+            heightMap[(int)currentPosition.x, (int)currentPosition.y] -= capasityDiff;
+
+            particle.SetSediment(particle.GetSediment() + capasityDiff);
+            particle.SetSpeed(speed);
+            particle.SetPosition(nextPosition);
+            particle.SetVolume(particle.GetVolume() * (1 - evaporationRate));
+
+            if (getLog) {
+                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                float sphereHeight = heightMap[(int)currentPosition.x, (int)currentPosition.y] * FindObjectOfType<MapGenerator>().heightMultiplier;
+                sphere.transform.position = new Vector3(currentPosition.x , sphereHeight, currentPosition.y);
+                sphere.transform.localScale = Vector3.one * particle.GetVolume() * 0.4f;
+                sphere.GetComponent<Renderer>().sharedMaterial.color = Color.red;
+            }
+            
+        }
     }
 
     Vector2 CalculatePointGradient(float[,] heightMap, float coordX, float coordY) 
