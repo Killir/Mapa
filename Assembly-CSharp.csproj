@@ -70,6 +70,8 @@
     <Compile Include="Assets\Scripts\NoiseGenerator.cs" />
     <Compile Include="Assets\Scripts\RegionMap.cs" />
     <Compile Include="Assets\Scripts\TerrainMeshGenerator.cs" />
+    <None Include="Assets\Seeds.txt" />
+    <None Include="Assets\Shaders\Terrain.shader" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/Unity Projects/Mapa/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>

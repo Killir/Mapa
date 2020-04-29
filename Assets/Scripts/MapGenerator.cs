@@ -18,7 +18,7 @@ public class MapGenerator : MonoBehaviour
     [Range(0, 5)]
     public int levelOfDetail;
 
-    [Header("Display parameters")]
+    [Header("Mesh parameters")]
     public AnimationCurve heightCurve;
 
     [Header ("Global noise parameters")]
@@ -40,7 +40,8 @@ public class MapGenerator : MonoBehaviour
     public NoiseData humidityNoiseData;
 
 
-    [Header ("Noise Display parameters")]
+    [Header("Noise Display parameters")]
+    public NoiseDisplay noiseDisplay;
     public DrawType drawMode;
     public bool autoUpdate;
 
@@ -76,16 +77,19 @@ public class MapGenerator : MonoBehaviour
 
     float[,] CombineNoiseMaps(Dictionary<Vector2, float[,]> noiseMapDictionary, List<Vector2> coordList)
     {
-        int width = mapSizeX * (chunkSize - (borderSize * 3)) + (borderSize * 3);
-        int height = mapSizeY * (chunkSize - (borderSize * 3)) + (borderSize * 3);
+        int mapWidth = chunkSize * LOD;
+        int mapHeight = chunkSize * LOD;
+        int width = mapSizeX * (mapWidth - (borderSize * 3)) + (borderSize * 3);
+        int height = mapSizeY * (mapHeight - (borderSize * 3)) + (borderSize * 3);
+
         float[,] noiseMap = new float[width, height];
 
         foreach(Vector2 coord in coordList) {
 
-            for (int j = 0; j < chunkSize; j++) {
-                for (int i = 0; i < chunkSize; i++) {
-                    int x = (int)coord.x * (chunkSize - (borderSize * 3)) + i;
-                    int y = (int)coord.y * (chunkSize - (borderSize * 3)) + j;
+            for (int j = 0; j < mapWidth; j++) {
+                for (int i = 0; i < mapHeight; i++) {
+                    int x = (int)coord.x * (mapWidth - (borderSize * 3)) + i;
+                    int y = (int)coord.y * (mapHeight - (borderSize * 3)) + j;
                     noiseMap[x, y] = noiseMapDictionary[coord][i, j];
                 }
             }
@@ -96,14 +100,15 @@ public class MapGenerator : MonoBehaviour
 
     Dictionary<Vector2, float[,]> SeparateNoiseMap(float[,] noiseMap, Dictionary<Vector2, float[,]> noiseMapDictionary, List<Vector2> coordList)
     {
-
+        int mapWidth = chunkSize * LOD;
+        int mapheight = chunkSize * LOD;
         foreach (Vector2 coord in coordList) {
-            float[,] currentNoiseMap = new float[chunkSize, chunkSize];
+            float[,] currentNoiseMap = new float[chunkSize * LOD, chunkSize * LOD];
 
-            for (int j = 0; j < chunkSize; j++) {
-                for (int i = 0; i < chunkSize; i++) {
-                    int x = (int)coord.x * (chunkSize - (borderSize * 3)) + i;
-                    int y = (int)coord.y * (chunkSize - (borderSize * 3)) + j;
+            for (int j = 0; j < mapheight; j++) {
+                for (int i = 0; i < mapWidth; i++) {
+                    int x = (int)coord.x * (mapWidth - (borderSize * 3)) + i;
+                    int y = (int)coord.y * (mapheight - (borderSize * 3)) + j;
                     currentNoiseMap[i, j] = noiseMap[x, y];
                 }
             }
@@ -125,9 +130,10 @@ public class MapGenerator : MonoBehaviour
         Mesh terrainMesh = TerrainMeshGenerator.CreateTerrain(heightMap, heightMultiplier, heightCurve, LOD);
 
         if (drawMode == DrawType.terrain_customMaterial) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithCustomMaterial(terrainMesh, heightMap, humidityMap, coord);
+            noiseDisplay.SetValuesToCustomShader(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0), humidityMap);
+            chunk = noiseDisplay.DrawTerrainChunkWithCustomMaterial(terrainMesh, humidityMap, coord);
         } else if (drawMode == DrawType.terrain_colorMap) {
-            chunk = FindObjectOfType<NoiseDisplay>().DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord);
+            chunk = noiseDisplay.DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord);
         }
 
         return chunk;
@@ -185,6 +191,7 @@ public class MapGenerator : MonoBehaviour
     public void GenerateMap()
     {
         ClearTerrainDictionary();
+        NoiseGenerator.SetSeed(seed);
 
         LOD = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
         borderShift = (float)(borderSize * 3) / LOD; // почему 3? хз!

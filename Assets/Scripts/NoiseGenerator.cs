@@ -75,6 +75,16 @@ public static class NoiseGenerator
         seed = newSeed;
     }
 
+    public static float GetMaxValue(int noiseIndex)
+    {
+        return maxNoiseValues[noiseIndex];
+    }
+
+    public static float GetMinValue(int noiseIndex)
+    {
+        return minNoiseValues[noiseIndex];
+    }
+
     public static void ClearMaxMinValue()
     {
         for (int i = 0; i < noiseMapsCount; i++) {

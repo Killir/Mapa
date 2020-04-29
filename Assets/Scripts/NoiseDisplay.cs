@@ -7,7 +7,7 @@ public class NoiseDisplay : MonoBehaviour
     public GameObject noiseDisplay;
     public GameObject chunkPrefab;
     public RegionMap regionMap;
-    public Material oneTextureMaterial;
+    public Material customMaterial;
 
     public void DrawHeightMap(float[,] noiseMap)
     {
@@ -74,7 +74,14 @@ public class NoiseDisplay : MonoBehaviour
         return chunk;
     }
 
-    public GameObject DrawTerrainChunkWithCustomMaterial(Mesh terrainMesh, float[,] noiseMap, float[,] humidityMap, Vector2 coord)
+    public void SetValuesToCustomShader(int heightMapIndex, float maxHeightMultiplier, float minHeightMultiplier, float[,] humidityMap)
+    {
+        customMaterial.SetFloat("maxHeight", NoiseGenerator.GetMaxValue(heightMapIndex) * maxHeightMultiplier);
+        customMaterial.SetFloat("minHeight", NoiseGenerator.GetMinValue(heightMapIndex) * minHeightMultiplier);
+
+    }
+
+    public GameObject DrawTerrainChunkWithCustomMaterial(Mesh terrainMesh, float[,] humidityMap, Vector2 coord)
     {
         if (noiseDisplay.activeInHierarchy)
             noiseDisplay.SetActive(false);
@@ -82,6 +89,7 @@ public class NoiseDisplay : MonoBehaviour
         GameObject chunk = Instantiate(chunkPrefab, new Vector3(coord.x, 0f, coord.y) , Quaternion.identity);
         chunk.name = "Chunk " + coord.ToString();
         chunk.GetComponent<MeshFilter>().sharedMesh = terrainMesh;
+        chunk.GetComponent<Renderer>().sharedMaterial = customMaterial;
 
         return chunk;
     }
