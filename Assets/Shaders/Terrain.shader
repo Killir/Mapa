@@ -24,6 +24,10 @@
 
         float maxHeight; 
         float minHeight; //эрозия влияет на высоту после выставления max и min значений в NoiseGenerator
+                         //нужно заного отслеживать мин и макс значения при эрозии
+
+        //humidity map будет передоваться в шейдер как текстура с шумом.
+        //значения будут браться по uv-координатам и преобразовываться в индекс через инверсную интерполяцию как в RegionMap.Evaluate()
 
         float InverseLerp(float a, float b, float value) {
             return saturate((value - a) / (b - a));
@@ -36,7 +40,7 @@
             float mainWeight = 1 - saturate((slope - blendHeight) / (_SlopeThreshold - blendHeight));
 
             float heightPercent = InverseLerp(minHeight, maxHeight, IN.worldPos.y);
-            o.Albedo = _MainColor * mainWeight + _SlopeColor * (1 - mainWeight); 
+            o.Albedo = (_MainColor * mainWeight + _SlopeColor * (1 - mainWeight))/* * heightPercent*/; 
         }
         ENDCG
     }

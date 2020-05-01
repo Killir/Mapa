@@ -85,6 +85,16 @@ public static class NoiseGenerator
         return minNoiseValues[noiseIndex];
     }
 
+    public static void SetMaxValue(int noiseIndex, float value)
+    {
+        maxNoiseValues[noiseIndex] = value;
+    }
+
+    public static void SetMinValue(int noiseIndex, float value)
+    {
+        minNoiseValues[noiseIndex] = value;
+    }
+
     public static void ClearMaxMinValue()
     {
         for (int i = 0; i < noiseMapsCount; i++) {
@@ -94,31 +104,6 @@ public static class NoiseGenerator
     }
 
     #region NoiseFilters
-
-    public static float[,] CascadeNoiseFilter2(float [,] noiseMap, int cascadeCount, float heightMultiplier, float intensity)
-    {
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
-        float value = Mathf.InverseLerp(0f, heightMultiplier, heightMultiplier / cascadeCount);
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-
-                for (int i = 0; i <= cascadeCount; i++) {
-                    float cascade = value * i;
-                    if (Mathf.Abs(cascade - noiseMap[x, y]) < (value * 0.5f)) {
-                        //float temp = value - (Mathf.Abs(cascade - noiseMap[x, y]));
-                        //temp = Mathf.InverseLerp(0f, value, value - temp);
-                        noiseMap[x, y] = Mathf.Lerp(noiseMap[x, y], cascade, intensity);
-                        break;
-                    }
-                }                
-            }
-        }
-
-        return noiseMap;
-    }
-
     public static float[,] CascadeNoiseFilter(float[,] noiseMap, int cascadeCount, float heightMultiplier, float intensity)
     {
         int width = noiseMap.GetLength(0);

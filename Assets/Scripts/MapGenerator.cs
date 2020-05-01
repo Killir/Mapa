@@ -49,11 +49,11 @@ public class MapGenerator : MonoBehaviour
     static Dictionary<Vector2, TerrainData> terrainDataDictionary = new Dictionary<Vector2, TerrainData>();
     int LOD;
 
-    private void SetNoiseFilters(Dictionary<Vector2, float[,]> noiseMapDictionary, List<Vector2> coordList)
+    private void SetNoiseFilters(Dictionary<Vector2, float[,]> noiseMapDictionary, int noiseIndex, List<Vector2> coordList)
     {
         if (erode) {
             float[,] sharedHeightMap = CombineNoiseMaps(noiseMapDictionary, coordList);
-            sharedHeightMap = erosion.Erode(seed, sharedHeightMap);
+            sharedHeightMap = erosion.Erode(seed, sharedHeightMap, noiseIndex);
             noiseMapDictionary = SeparateNoiseMap(sharedHeightMap, noiseMapDictionary, coordList);
         }
 
@@ -63,10 +63,10 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-    private void SetNoiseFilters(float[,] noiseMap, Vector2 coord)
+    private void SetNoiseFilters(float[,] noiseMap, int noiseIndex, Vector2 coord)
     {
         if (erode) {
-            noiseMap = erosion.Erode(seed, noiseMap);
+            noiseMap = erosion.Erode(seed, noiseMap, noiseIndex);
         }
 
         if (cascadeNoiseFilter) {
@@ -161,7 +161,7 @@ public class MapGenerator : MonoBehaviour
             humidityMapDictionary[v] = NoiseGenerator.NormilazeNoiseMap(humidityMapDictionary[v], humidityNoiseData.noiseIndex);
         }
 
-        SetNoiseFilters(heightMapDictionary, coordList);
+        SetNoiseFilters(heightMapDictionary, heightNoiseData.noiseIndex, coordList);
 
         foreach (Vector2 v in coordList) {
             GameObject terrainGameObject = GenerateChunk(heightMapDictionary[v], humidityMapDictionary[v], v * (chunkSize - borderShift));
@@ -198,22 +198,22 @@ public class MapGenerator : MonoBehaviour
 
         switch (drawMode) {
             case DrawType.heightMap:
-                float[,] noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
-                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
-                SetNoiseFilters(noiseMap, Vector2.zero);
-                FindObjectOfType<NoiseDisplay>().DrawHeightMap(noiseMap);
+                float[,] heightMap = GetNoiseMap(heightNoiseData, Vector2.zero);
+                heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
+                SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
+                FindObjectOfType<NoiseDisplay>().DrawHeightMap(heightMap);
                 break;
             case DrawType.humidityMap:
-                noiseMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
-                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, humidityNoiseData.noiseIndex);
-                FindObjectOfType<NoiseDisplay>().DrawHeightMap(noiseMap);
+                float[,] humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
+                humidityMap = NoiseGenerator.NormilazeNoiseMap(humidityMap, humidityNoiseData.noiseIndex);
+                FindObjectOfType<NoiseDisplay>().DrawHeightMap(humidityMap);
                 break;
             case DrawType.colorMap:
-                noiseMap = GetNoiseMap(heightNoiseData, Vector2.zero);
-                noiseMap = NoiseGenerator.NormilazeNoiseMap(noiseMap, heightNoiseData.noiseIndex);
-                SetNoiseFilters(noiseMap, Vector2.zero);
-                float[,] humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
-                FindObjectOfType<NoiseDisplay>().DrawColorMap(noiseMap, humidityMap);
+                heightMap = GetNoiseMap(heightNoiseData, Vector2.zero);
+                heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
+                SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
+                humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
+                FindObjectOfType<NoiseDisplay>().DrawColorMap(heightMap, humidityMap);
                 break;
             default:
                 SetTerrainMap();

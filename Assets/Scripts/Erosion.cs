@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Erosion : MonoBehaviour
 {
-    public bool getLog = false;
+    public bool debug = false;
     public int iterationCount;
     public int particleLifetime;
     [Space(10)]
@@ -16,66 +16,61 @@ public class Erosion : MonoBehaviour
 
     public float startVolume;
 
-    public float[,] Erode(int seed, float[,] heightMap)
+    public float[,] Erode(int seed, float[,] heightMap, int heightMapIndex)
     {
         System.Random prng = new System.Random(seed);
-        int width = heightMap.GetLength(0) - 2;
-        int height = heightMap.GetLength(1) - 2;
-
-        for (int i = 0; i < iterationCount; i++) {
-            Vector2 position = new Vector2(prng.Next(1, width), prng.Next(1, height));
-            Particle particle = new Particle(position, startVolume);
-
-            SimulateParticle(heightMap, particle, particleLifetime);
-        }
-
-        return heightMap;
-    }
-
-    void SimulateParticle(float[,] heightMap, Particle particle, int lifetime)
-    {
         int width = heightMap.GetLength(0) - 1;
         int height = heightMap.GetLength(1) - 1;
 
-        for (int i = 0; i < lifetime; i++) {
-            Vector2 currentPosition = particle.GetPosition();
-            float currentHeight = heightMap[(int)currentPosition.x, (int)currentPosition.y];
+        for (int i = 0; i < iterationCount; i++) {
+            Vector2 position = new Vector2(prng.Next(1, width - 1), prng.Next(1, height - 1));
+            Particle particle = new Particle(position, startVolume);
 
-            Vector2 gradient = CalculatePointGradient(heightMap, currentPosition.x, currentPosition.y);
-            Vector2 speed = particle.GetSpeed() + gradient / particle.GetVolume();
-            if (speed.magnitude == 0) {
-                break;
+            for (int l = 0; l < particleLifetime; l++) {
+                Vector2 currentPosition = particle.GetPosition();
+                int curX = (int)currentPosition.x;
+                int curY = (int)currentPosition.y;
+                float currentHeight = heightMap[curX, curY];
+
+                Vector2 gradient = CalculatePointGradient(heightMap, currentPosition.x, currentPosition.y);
+                Vector2 speed = particle.GetSpeed() + gradient / particle.GetVolume();
+                if (speed.magnitude == 0) {
+                    break;
+                }
+                Vector2 nextPosition = currentPosition + speed;
+
+                bool outOfHeightMap = nextPosition.x < 1 || nextPosition.x >= width || nextPosition.y < 1 || nextPosition.y >= height;
+                if (outOfHeightMap) {
+                    break;
+                }
+
+                float nextHeight = heightMap[(int)nextPosition.x, (int)nextPosition.y];
+                float heightDiff = currentHeight - nextHeight;
+                float capasity = particle.GetVolume() * speed.magnitude * heightDiff;
+                if (capasity < 0) {
+                    capasity = 0f;
+                }
+                float capasityDiff = capasity - particle.GetSediment() * depositionRate;
+                heightMap[curX, curY] -= capasityDiff;
+                UpdateMinMaxNoiseValues(heightMap[curX, curY], heightMapIndex);
+
+                particle.SetSediment(particle.GetSediment() + capasityDiff);
+                particle.SetSpeed(speed);
+                particle.SetPosition(nextPosition);
+                particle.SetVolume(particle.GetVolume() * (1 - evaporationRate));
+
+                if (debug) {
+                    GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    float sphereHeight = heightMap[(int)currentPosition.x, (int)currentPosition.y] * FindObjectOfType<MapGenerator>().heightMultiplier;
+                    sphere.transform.position = new Vector3(currentPosition.x, sphereHeight, currentPosition.y);
+                    sphere.transform.localScale = Vector3.one * particle.GetVolume() * 0.4f;
+                    sphere.GetComponent<Renderer>().sharedMaterial.color = Color.red;
+                }
             }
-            Vector2 nextPosition = currentPosition + speed;
 
-            bool outOfHeightMap = nextPosition.x < 1 || nextPosition.x >= width || nextPosition.y < 1 || nextPosition.y >= height;
-            if (outOfHeightMap) {
-                break;
-            }
-
-            float nextHeight = heightMap[(int)nextPosition.x, (int)nextPosition.y];
-            float heightDiff = currentHeight - nextHeight;
-            float capasity = particle.GetVolume() * speed.magnitude * heightDiff;
-            if (capasity < 0) {
-                capasity = 0f;
-            }
-            float capasityDiff = capasity - particle.GetSediment() * depositionRate;
-            heightMap[(int)currentPosition.x, (int)currentPosition.y] -= capasityDiff;
-
-            particle.SetSediment(particle.GetSediment() + capasityDiff);
-            particle.SetSpeed(speed);
-            particle.SetPosition(nextPosition);
-            particle.SetVolume(particle.GetVolume() * (1 - evaporationRate));
-
-            if (getLog) {
-                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                float sphereHeight = heightMap[(int)currentPosition.x, (int)currentPosition.y] * FindObjectOfType<MapGenerator>().heightMultiplier;
-                sphere.transform.position = new Vector3(currentPosition.x , sphereHeight, currentPosition.y);
-                sphere.transform.localScale = Vector3.one * particle.GetVolume() * 0.4f;
-                sphere.GetComponent<Renderer>().sharedMaterial.color = Color.red;
-            }
-            
         }
+
+        return heightMap;
     }
 
     Vector2 CalculatePointGradient(float[,] heightMap, float coordX, float coordY) 
@@ -96,6 +91,18 @@ public class Erosion : MonoBehaviour
         Vector2 gradient = new Vector2(gradientX, gradientY);
 
         return gradient;
+    }
+
+    void UpdateMinMaxNoiseValues(float value, int heightMapIndex)
+    {
+        if (value > NoiseGenerator.GetMaxValue(heightMapIndex)) {
+            NoiseGenerator.SetMaxValue(heightMapIndex, value);
+            Debug.Log("max");
+        }
+        if (value < NoiseGenerator.GetMinValue(heightMapIndex)) {
+            NoiseGenerator.SetMinValue(heightMapIndex, value);
+            Debug.Log("min");
+        }
     }
 
     class Particle
