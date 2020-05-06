@@ -76,6 +76,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _BiomsBlend: 0
     - _BlendAmount: 0.69
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -90,7 +91,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _RegionsBlend: 0
+    - _RegionsBlend: 0.191
     - _Scale: -6.4
     - _SlopeThreshold: 0.45
     - _SmoothnessTextureChannel: 0
