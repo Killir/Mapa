@@ -13,10 +13,17 @@ public class NoiseDisplay : MonoBehaviour
     {
         noiseDisplay.SetActive(true);
 
+        Texture2D texture = GenerateNoiseMapTexture(noiseMap);
+
+        noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
+    }
+
+    public Texture2D GenerateNoiseMapTexture(float[,] noiseMap)
+    {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
 
-        Texture2D texture = new Texture2D(width, height);
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -27,7 +34,8 @@ public class NoiseDisplay : MonoBehaviour
         texture.filterMode = FilterMode.Bilinear;
         texture.wrapMode = TextureWrapMode.Clamp;
         texture.Apply();
-        noiseDisplay.GetComponent<Renderer>().sharedMaterial.mainTexture = texture;
+
+        return texture;
     }
 
     private Texture2D GenerateColorTexture(float[,] heightMap, float[,] humidityMap)
@@ -40,7 +48,7 @@ public class NoiseDisplay : MonoBehaviour
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 RegionData currentRegion = regionMap.Evaluate(heightMap[x, y], humidityMap[x, y]);
-                texture.SetPixel(x, y, currentRegion.color);
+                texture.SetPixel(x, y, currentRegion.mainColor);
             }
         }
 
@@ -72,13 +80,6 @@ public class NoiseDisplay : MonoBehaviour
         chunk.GetComponent<Renderer>().material.mainTexture = texture;
 
         return chunk;
-    }
-
-    public void SetValuesToCustomShader(int heightMapIndex, float maxHeightMultiplier, float minHeightMultiplier, float[,] humidityMap)
-    {
-        customMaterial.SetFloat("maxHeight", NoiseGenerator.GetMaxValue(heightMapIndex) * maxHeightMultiplier);
-        customMaterial.SetFloat("minHeight", NoiseGenerator.GetMinValue(heightMapIndex) * minHeightMultiplier);
-
     }
 
     public GameObject DrawTerrainChunkWithCustomMaterial(Mesh terrainMesh, float[,] humidityMap, Vector2 coord)

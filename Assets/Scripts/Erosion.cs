@@ -21,6 +21,8 @@ public class Erosion : MonoBehaviour
         System.Random prng = new System.Random(seed);
         int width = heightMap.GetLength(0) - 1;
         int height = heightMap.GetLength(1) - 1;
+        float minHeightValue = float.MaxValue;
+        float maxHeightValue = float.MinValue;
 
         for (int i = 0; i < iterationCount; i++) {
             Vector2 position = new Vector2(prng.Next(1, width - 1), prng.Next(1, height - 1));
@@ -52,7 +54,13 @@ public class Erosion : MonoBehaviour
                 }
                 float capasityDiff = capasity - particle.GetSediment() * depositionRate;
                 heightMap[curX, curY] -= capasityDiff;
-                UpdateMinMaxNoiseValues(heightMap[curX, curY], heightMapIndex);
+
+                if (heightMap[curX, curY] > maxHeightValue) {
+                    maxHeightValue = heightMap[curX, curY];
+                }
+                if (heightMap[curX, curY] < minHeightValue) {
+                    minHeightValue = heightMap[curX, curY];
+                }
 
                 particle.SetSediment(particle.GetSediment() + capasityDiff);
                 particle.SetSpeed(speed);
@@ -70,6 +78,8 @@ public class Erosion : MonoBehaviour
 
         }
 
+        NoiseGenerator.SetMaxValue(heightMapIndex, maxHeightValue);
+        NoiseGenerator.SetMinValue(heightMapIndex, minHeightValue);
         return heightMap;
     }
 
@@ -91,18 +101,6 @@ public class Erosion : MonoBehaviour
         Vector2 gradient = new Vector2(gradientX, gradientY);
 
         return gradient;
-    }
-
-    void UpdateMinMaxNoiseValues(float value, int heightMapIndex)
-    {
-        if (value > NoiseGenerator.GetMaxValue(heightMapIndex)) {
-            NoiseGenerator.SetMaxValue(heightMapIndex, value);
-            Debug.Log("max");
-        }
-        if (value < NoiseGenerator.GetMinValue(heightMapIndex)) {
-            NoiseGenerator.SetMinValue(heightMapIndex, value);
-            Debug.Log("min");
-        }
     }
 
     class Particle

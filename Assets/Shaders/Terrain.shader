@@ -1,33 +1,47 @@
 ﻿Shader "Custom/Terrain" {
     Properties{
-        _MainColor("Main Color", Color) = (0,1,0,1)
-        _SlopeColor("Slope Color", Color) = (1,1,1,1)
-        _SlopeThreshold("Slope Threshold", Range(0,1)) = 0.5
-        _BlendAmount("Blend Amount", Range(0,1)) = 0.5
+        _HumidityMap("Humidity map", 2D) = "white" {}
+        _RegionsBlend("Regions blend", Range(0, 0.5)) = 0.25
     }
         SubShader
     {
         Tags { "RenderType" = "Opaque" }
+        LOD 200
         CGPROGRAM
         #pragma surface surf Standard fullforwardshadows
         #pragma target 3.0
+
+        const static float epsilon = 1E-4;
+        const static int maxHDCount = 8;
+        const static int maxIncRegCount = 16;
+        const static int maxRegCount = 128;
+
+        sampler2D _HumidityMap;
+        half _RegionsBlend;
+
+        int mapWidth;
+        int mapHeight;
+        int chunkWidth;
+        int chunkHeight;
+
+        float maxHeight;
+        float minHeight;
+
+        int hdCount;
+        float hdLenghtsFloat[maxHDCount];
+        float hdIncRegsFloat[maxRegCount];
+
+        float3 mainColors[maxRegCount];
+        float3 slopeColors[maxRegCount];
+        float heights[maxRegCount];
+        float slopeThresholds[maxRegCount];
+        float slopeBlendAmounts[maxRegCount];
+        float regionBlendAmounts[maxRegCount];
 
         struct Input {
             float3 worldPos;
             float3 worldNormal;
         };
-        
-        half _SlopeThreshold;
-        half _BlendAmount;
-        fixed4 _MainColor;
-        fixed4 _SlopeColor;
-
-        float maxHeight; 
-        float minHeight; //эрозия влияет на высоту после выставления max и min значений в NoiseGenerator
-                         //нужно заного отслеживать мин и макс значения при эрозии
-
-        //humidity map будет передоваться в шейдер как текстура с шумом.
-        //значения будут браться по uv-координатам и преобразовываться в индекс через инверсную интерполяцию как в RegionMap.Evaluate()
 
         float InverseLerp(float a, float b, float value) {
             return saturate((value - a) / (b - a));
@@ -35,12 +49,56 @@
 
         void surf(Input IN, inout SurfaceOutputStandard o) {
 
-            float slope = 1 - IN.worldNormal.y; // slope = 0 when terrain is completely flat
-            float blendHeight = _SlopeThreshold * (1 - _BlendAmount);
-            float mainWeight = 1 - saturate((slope - blendHeight) / (_SlopeThreshold - blendHeight));
+            int hdLenghts[maxHDCount];
+            int hdIncRegs[maxRegCount];
+            int incRegCount = 0;
+            for (int t = 0; t < hdCount; t++) {
+                hdLenghts[t] = round(hdLenghtsFloat[t]);
+                incRegCount += hdLenghts[t];
+            }
+            for (int r = 0; r < incRegCount; r++) {
+                hdIncRegs[r] = round(hdIncRegsFloat[r]);
+            }
 
-            float heightPercent = InverseLerp(minHeight, maxHeight, IN.worldPos.y);
-            o.Albedo = (_MainColor * mainWeight + _SlopeColor * (1 - mainWeight))/* * heightPercent*/; 
+            float humidityRange = (float)1 / hdCount;
+            float2 coord = float2(IN.worldPos.x / (chunkWidth * mapWidth), IN.worldPos.z / (chunkHeight * mapHeight));
+            float humidityValue = tex2D(_HumidityMap, coord).r;
+            //float3 humidityColor = float3(0, 0, 0);
+
+            for (int i = 0; i < hdCount; i++) {  
+                float regionBlendHeight = _RegionsBlend * InverseLerp(0, _RegionsBlend, humidityValue);
+                float humidityStrenght = InverseLerp(-_RegionsBlend - epsilon, regionBlendHeight, humidityValue - (humidityRange * i));
+                
+                //float humidityStrenght = InverseLerp(-_RegionsBlend - epsilon, _RegionsBlend, humidityValue - (humidityRange * i));
+
+                int hdStartIndex = 0;
+                for (int j = 0; j < i; j++) {
+                    hdStartIndex += hdLenghts[j];
+                }
+
+                int hdLenght = hdLenghts[i];
+                int incReg[maxIncRegCount];
+                for (int l = 0; l < hdLenght; l++) {
+                    incReg[l] = hdIncRegs[hdStartIndex + l];
+                }
+
+                float3 heightColor = float3(0, 0, 0);
+                float heightPercent = InverseLerp(minHeight, maxHeight, IN.worldPos.y);
+                for (int h = 0; h < hdLenght; h++) {
+                    int index = incReg[h];
+                    float drawStrenght = InverseLerp(-regionBlendAmounts[index] / 2 - epsilon, regionBlendAmounts[index] / 2, heightPercent - heights[index]);
+
+                    float slope = 1 - IN.worldNormal.y;
+                    float blendHeight = slopeThresholds[index] * (1 - slopeBlendAmounts[index]);
+                    float mainWeight = 1 - InverseLerp(blendHeight, slopeThresholds[index], slope);
+
+                    float3 currentColor = mainColors[index] * mainWeight + slopeColors[index] * (1 - mainWeight);
+                    heightColor = heightColor * (1 - drawStrenght) + currentColor * drawStrenght;
+                }
+                o.Albedo = o.Albedo * (1 - humidityStrenght) + heightColor * humidityStrenght;
+            }
+
+            //o.Albedo = humidityColor;
         }
         ENDCG
     }

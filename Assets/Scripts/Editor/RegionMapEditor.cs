@@ -10,9 +10,13 @@ public class RegionMapEditor : Editor
 
     RegionMap serializableObject;
 
+    const int maxHDCount = 8;
+    const int maxIncRegCount = 16;
+    const int maxRegionCount = 128;
+
     public override void OnInspectorGUI()
     {
-        serializableObject = (RegionMap)target;
+        serializableObject = (RegionMap)target;        
 
         List<string> regionsNames = new List<string>();
         if (serializableObject.regions.Count > 0) {
@@ -20,6 +24,8 @@ public class RegionMapEditor : Editor
                 regionsNames.Add(rd.name);
             }
         }
+
+        serializableObject.regionsBlend = EditorGUILayout.Slider("Region blend amount", serializableObject.regionsBlend, 0f, 0.5f);
 
         if (serializableObject.humidityLevels.Count > 0) { // humidity levels
             
@@ -53,9 +59,11 @@ public class RegionMapEditor : Editor
                 } else EditorGUILayout.LabelField("Region list is empty!");
 
                 GUILayout.Space(5);
-                if (GUILayout.Button("Add", GUILayout.Width(50))) {
-                    hd.includedRegions.Add(new IncludedRegion());
-                    serializableObject.UpdateIndices();
+                if (hd.includedRegions.Count < maxIncRegCount) {
+                    if (GUILayout.Button("Add", GUILayout.Width(50))) {
+                        hd.includedRegions.Add(new IncludedRegion());
+                        serializableObject.UpdateIndices();
+                    }
                 }
 
                 GUILayout.Space(15);
@@ -72,10 +80,16 @@ public class RegionMapEditor : Editor
         }
 
         GUILayout.Space(5);
-        if (GUILayout.Button("Add humidity level")) {
-            serializableObject.humidityLevels.Add(new HumidityData(serializableObject.humidityLevels.Count));
+        if (serializableObject.humidityLevels.Count < maxHDCount) {
+            if (GUILayout.Button("Add humidity level")) {
+                serializableObject.humidityLevels.Add(new HumidityData(serializableObject.humidityLevels.Count));
+            }
         }
 
+        GUILayout.Space(10);
+        if (GUILayout.Button("Sort included regions")) {
+            serializableObject.SortRegionDataList();
+        }
         if (GUILayout.Button("Log")) {
             serializableObject.LogHumidityLevels();
         }
@@ -85,6 +99,11 @@ public class RegionMapEditor : Editor
         }
 
         GUILayout.Space(50);
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Auto update shader");
+        serializableObject.autoUpdateShader = EditorGUILayout.Toggle(serializableObject.autoUpdateShader);
+        GUILayout.EndHorizontal();
 
         if (serializableObject.regions.Count > 0) { //Regions
 
@@ -96,7 +115,11 @@ public class RegionMapEditor : Editor
 
                 region.name = EditorGUILayout.TextField("Name", region.name);
                 region.height = EditorGUILayout.Slider("Height", region.height, 0f, 1f);
-                region.color = EditorGUILayout.ColorField("Color", region.color);
+                region.mainColor = EditorGUILayout.ColorField("Main color", region.mainColor);
+                region.slopeColor = EditorGUILayout.ColorField("Slope color", region.slopeColor);
+                region.slopeThreshold = EditorGUILayout.Slider("Slope threshold", region.slopeThreshold, 0f, 1f);
+                region.slopeBlendAmount = EditorGUILayout.Slider("Slope blend amount", region.slopeBlendAmount, 0f, 1f);
+                region.regionBlendAmount = EditorGUILayout.Slider("Region blend amount", region.regionBlendAmount, 0f, 1f);
 
                 GUILayout.Space(15);
 
@@ -130,8 +153,10 @@ public class RegionMapEditor : Editor
             EditorGUILayout.LabelField("There is no regions in list!");
         }
 
-        if (GUILayout.Button("Add region")) {
-            serializableObject.regions.Add(new RegionData());
+        if (serializableObject.regions.Count < maxRegionCount) {
+            if (GUILayout.Button("Add region")) {
+                serializableObject.regions.Add(new RegionData());
+            }
         }
 
         if (GUI.changed) {

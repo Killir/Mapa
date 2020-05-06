@@ -44,7 +44,7 @@ public static class NoiseGenerator
                 }
                 
                 noiseMap[x, y] = value;
-
+ 
                 if (value > maxNoiseValues[nd.noiseIndex]) {
                     maxNoiseValues[nd.noiseIndex] = value;
                 }

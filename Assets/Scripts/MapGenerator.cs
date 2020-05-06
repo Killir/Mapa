@@ -130,7 +130,6 @@ public class MapGenerator : MonoBehaviour
         Mesh terrainMesh = TerrainMeshGenerator.CreateTerrain(heightMap, heightMultiplier, heightCurve, LOD);
 
         if (drawMode == DrawType.terrain_customMaterial) {
-            noiseDisplay.SetValuesToCustomShader(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0), humidityMap);
             chunk = noiseDisplay.DrawTerrainChunkWithCustomMaterial(terrainMesh, humidityMap, coord);
         } else if (drawMode == DrawType.terrain_colorMap) {
             chunk = noiseDisplay.DrawTerrainChunkWithColorMap(terrainMesh, heightMap, humidityMap, coord);
@@ -162,6 +161,14 @@ public class MapGenerator : MonoBehaviour
         }
 
         SetNoiseFilters(heightMapDictionary, heightNoiseData.noiseIndex, coordList);
+
+        if (drawMode == DrawType.terrain_customMaterial) {
+            float[,] sharedHumidityMap = CombineNoiseMaps(humidityMapDictionary, coordList);
+            Texture2D hmTexture = noiseDisplay.GenerateNoiseMapTexture(sharedHumidityMap);
+            ShaderData sd = new ShaderData(noiseDisplay.customMaterial,mapSizeX, mapSizeY, chunkSize, chunkSize, hmTexture, noiseDisplay.regionMap);
+            sd.SetMaxMinHeights(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0));
+            sd.SetShaderValue();
+        }
 
         foreach (Vector2 v in coordList) {
             GameObject terrainGameObject = GenerateChunk(heightMapDictionary[v], humidityMapDictionary[v], v * (chunkSize - borderShift));
@@ -224,7 +231,7 @@ public class MapGenerator : MonoBehaviour
 
     public void SetNewSeed()
     {
-        seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        seed = UnityEngine.Random.Range(0, int.MaxValue);
         NoiseGenerator.SetSeed(seed);
     }
 
