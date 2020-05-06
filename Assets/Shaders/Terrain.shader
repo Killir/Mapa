@@ -1,7 +1,7 @@
 ﻿Shader "Custom/Terrain" {
     Properties{
         _HumidityMap("Humidity map", 2D) = "white" {}
-        _RegionsBlend("Regions blend", Range(0, 0.5)) = 0.25
+        _BiomsBlend("Bioms blend", Range(0, 0.5)) = 0.25
     }
         SubShader
     {
@@ -17,17 +17,17 @@
         const static int maxRegCount = 128;
 
         sampler2D _HumidityMap;
-        half _RegionsBlend;
+        half _BiomsBlend;
 
-        int mapWidth;
-        int mapHeight;
-        int chunkWidth;
-        int chunkHeight;
+        uint mapWidth;
+        uint mapHeight;
+        uint chunkWidth;
+        uint chunkHeight;
 
         float maxHeight;
         float minHeight;
 
-        int hdCount;
+        uint hdCount;
         float hdLenghtsFloat[maxHDCount];
         float hdIncRegsFloat[maxRegCount];
 
@@ -49,44 +49,41 @@
 
         void surf(Input IN, inout SurfaceOutputStandard o) {
 
-            int hdLenghts[maxHDCount];
-            int hdIncRegs[maxRegCount];
-            int incRegCount = 0;
-            for (int t = 0; t < hdCount; t++) {
+            uint hdLenghts[maxHDCount];
+            uint hdIncRegs[maxRegCount];
+            uint incRegCount = 0;
+            for (uint t = 0; t < hdCount; t++) {
                 hdLenghts[t] = round(hdLenghtsFloat[t]);
                 incRegCount += hdLenghts[t];
             }
-            for (int r = 0; r < incRegCount; r++) {
+            for (uint r = 0; r < incRegCount; r++) {
                 hdIncRegs[r] = round(hdIncRegsFloat[r]);
             }
 
             float humidityRange = (float)1 / hdCount;
             float2 coord = float2(IN.worldPos.x / (chunkWidth * mapWidth), IN.worldPos.z / (chunkHeight * mapHeight));
             float humidityValue = tex2D(_HumidityMap, coord).r;
-            //float3 humidityColor = float3(0, 0, 0);
 
-            for (int i = 0; i < hdCount; i++) {  
-                float regionBlendHeight = _RegionsBlend * InverseLerp(0, _RegionsBlend, humidityValue);
-                float humidityStrenght = InverseLerp(-_RegionsBlend - epsilon, regionBlendHeight, humidityValue - (humidityRange * i));
-                
-                //float humidityStrenght = InverseLerp(-_RegionsBlend - epsilon, _RegionsBlend, humidityValue - (humidityRange * i));
+            for (uint i = 0; i < hdCount; i++) {  
+                float biomBlendHeight = _BiomsBlend * InverseLerp(0, _BiomsBlend, humidityValue);
+                float humidityStrenght = InverseLerp(-_BiomsBlend - epsilon, biomBlendHeight, humidityValue - (humidityRange * i));
 
-                int hdStartIndex = 0;
-                for (int j = 0; j < i; j++) {
+                uint hdStartIndex = 0;
+                for (uint j = 0; j < i; j++) {
                     hdStartIndex += hdLenghts[j];
                 }
 
-                int hdLenght = hdLenghts[i];
-                int incReg[maxIncRegCount];
-                for (int l = 0; l < hdLenght; l++) {
+                uint hdLenght = hdLenghts[i];
+                uint incReg[maxIncRegCount];
+                for (uint l = 0; l < hdLenght; l++) {
                     incReg[l] = hdIncRegs[hdStartIndex + l];
                 }
 
                 float3 heightColor = float3(0, 0, 0);
                 float heightPercent = InverseLerp(minHeight, maxHeight, IN.worldPos.y);
-                for (int h = 0; h < hdLenght; h++) {
-                    int index = incReg[h];
-                    float drawStrenght = InverseLerp(-regionBlendAmounts[index] / 2 - epsilon, regionBlendAmounts[index] / 2, heightPercent - heights[index]);
+                for (uint h = 0; h < hdLenght; h++) {
+                    uint index = incReg[h];
+                    float drawStrenght = InverseLerp(-regionBlendAmounts[index] - epsilon, regionBlendAmounts[index], heightPercent - heights[index]);
 
                     float slope = 1 - IN.worldNormal.y;
                     float blendHeight = slopeThresholds[index] * (1 - slopeBlendAmounts[index]);
@@ -98,7 +95,6 @@
                 o.Albedo = o.Albedo * (1 - humidityStrenght) + heightColor * humidityStrenght;
             }
 
-            //o.Albedo = humidityColor;
         }
         ENDCG
     }

@@ -6,14 +6,17 @@ using UnityEngine;
 public class RegionMap : MonoBehaviour
 {
 
-    public bool autoUpdateShader = false;
     [Range(0f, 0.5f)]
-    public float regionsBlend;
+    public float biomsBlend;
     public List<HumidityData> humidityLevels = new List<HumidityData>();
     public List<RegionData> regions = new List<RegionData>();
 
+    ShaderData sd = null;
+
     public RegionData Evaluate(float height, float humidity)
     {
+        SortRegionDataList();
+
         RegionData region = new RegionData();
         List<RegionData> currentHumidityLevelRegions = new List<RegionData>();
 
@@ -44,6 +47,22 @@ public class RegionMap : MonoBehaviour
         }
 
         return region;
+    }
+
+    public void SetShaderData(ShaderData sd)
+    {
+        this.sd = sd;
+        UpdateAndApplyShaderData();
+    }
+
+    public void UpdateAndApplyShaderData()
+    {
+        if (sd != null) {
+            sd.SetRegionMapValues(this);
+            sd.SetShaderValue();
+        } else {
+            Debug.Log("Shader data is empty");
+        }
     }
 
     public int[] GetHumidityLevelsLenght(int[] lenghts)
@@ -254,14 +273,13 @@ public class RegionData
     public float slopeThreshold = 0.5f;
     [Range(0f, 1f)]
     public float slopeBlendAmount = 0.7f;
-    [Range(0f, 1f)]
-    public float regionBlendAmount = 0.5f;
+    [Range(0f, 0.5f)]
+    public float regionBlendAmount = 0.25f;
 }
 
 public class ShaderData
 {
     const int maxHDCount = 8;
-    const int maxIncRegCount = 16;
     const int maxRegionCount = 128;
 
     Material material;
@@ -270,7 +288,7 @@ public class ShaderData
     int[] hdLenghts = new int[maxHDCount];
     int[] hdIncRegs = new int[maxRegionCount];
 
-    float regionsBlend;
+    float biomsBlend;
     int mapWidth;
     int mapHeight;
     int chunkWidth;
@@ -296,22 +314,7 @@ public class ShaderData
         this.material = material;
         this.humidityMap = humidityMap;
 
-        hdCount = 0;
-        foreach (HumidityData hd in regionMap.humidityLevels) {
-            if (hd.isActive) {
-                hdCount++;
-            }
-        }
-        hdLenghts = regionMap.GetHumidityLevelsLenght(hdLenghts);
-        hdIncRegs = regionMap.GetAllIncludedRegions(hdIncRegs);
-        regionsBlend = regionMap.regionsBlend;
-
-        mainColors = GetSizedArray(regionMap.regions.Select(x => x.mainColor).ToArray(), mainColors);
-        slopeColors = GetSizedArray(regionMap.regions.Select(x => x.slopeColor).ToArray(), slopeColors);
-        heights = GetSizedArray(regionMap.regions.Select(x => x.height).ToArray(), heights);
-        slopeThresholds = GetSizedArray(regionMap.regions.Select(x => x.slopeThreshold).ToArray(), slopeThresholds);
-        slopeBlendAmounts = GetSizedArray(regionMap.regions.Select(x => x.slopeBlendAmount).ToArray(), slopeBlendAmounts);
-        regionBlendAmounts = GetSizedArray(regionMap.regions.Select(x => x.regionBlendAmount).ToArray(), regionBlendAmounts);
+        SetRegionMapValues(regionMap);
     }
 
     T[] GetSizedArray<T>(T[] unsizedArray, T[] array)
@@ -320,6 +323,26 @@ public class ShaderData
             array[i] = unsizedArray[i];
         }
         return array;
+    }
+
+    public void SetRegionMapValues(RegionMap regionMap)
+    {
+        hdCount = 0;
+        foreach (HumidityData hd in regionMap.humidityLevels) {
+            if (hd.isActive) {
+                hdCount++;
+            }
+        }
+        hdLenghts = regionMap.GetHumidityLevelsLenght(hdLenghts);
+        hdIncRegs = regionMap.GetAllIncludedRegions(hdIncRegs);
+        biomsBlend = regionMap.biomsBlend;
+
+        mainColors = GetSizedArray(regionMap.regions.Select(x => x.mainColor).ToArray(), mainColors);
+        slopeColors = GetSizedArray(regionMap.regions.Select(x => x.slopeColor).ToArray(), slopeColors);
+        heights = GetSizedArray(regionMap.regions.Select(x => x.height).ToArray(), heights);
+        slopeThresholds = GetSizedArray(regionMap.regions.Select(x => x.slopeThreshold).ToArray(), slopeThresholds);
+        slopeBlendAmounts = GetSizedArray(regionMap.regions.Select(x => x.slopeBlendAmount).ToArray(), slopeBlendAmounts);
+        regionBlendAmounts = GetSizedArray(regionMap.regions.Select(x => x.regionBlendAmount).ToArray(), regionBlendAmounts);
     }
 
     public void SetMaxMinHeights(int heightMapIndex, float maxHeightMultiplier, float minHeightMultiplier)
@@ -340,7 +363,7 @@ public class ShaderData
         }
         material.SetFloatArray("hdLenghtsFloat", hdLenghtsFloat.ToArray());
         material.SetFloatArray("hdIncRegsFloat", hdIncRegsFloat.ToArray());
-        material.SetFloat("_RegionsBlend", regionsBlend);
+        material.SetFloat("_BiomsBlend", biomsBlend);
 
         material.SetTexture("_HumidityMap", humidityMap);
 

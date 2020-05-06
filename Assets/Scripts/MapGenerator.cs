@@ -49,6 +49,11 @@ public class MapGenerator : MonoBehaviour
     static Dictionary<Vector2, TerrainData> terrainDataDictionary = new Dictionary<Vector2, TerrainData>();
     int LOD;
 
+    private void Start()
+    {
+        GenerateMap();
+    }
+
     private void SetNoiseFilters(Dictionary<Vector2, float[,]> noiseMapDictionary, int noiseIndex, List<Vector2> coordList)
     {
         if (erode) {
@@ -163,11 +168,7 @@ public class MapGenerator : MonoBehaviour
         SetNoiseFilters(heightMapDictionary, heightNoiseData.noiseIndex, coordList);
 
         if (drawMode == DrawType.terrain_customMaterial) {
-            float[,] sharedHumidityMap = CombineNoiseMaps(humidityMapDictionary, coordList);
-            Texture2D hmTexture = noiseDisplay.GenerateNoiseMapTexture(sharedHumidityMap);
-            ShaderData sd = new ShaderData(noiseDisplay.customMaterial,mapSizeX, mapSizeY, chunkSize, chunkSize, hmTexture, noiseDisplay.regionMap);
-            sd.SetMaxMinHeights(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0));
-            sd.SetShaderValue();
+            SetShaderData(humidityMapDictionary, coordList);
         }
 
         foreach (Vector2 v in coordList) {
@@ -177,14 +178,14 @@ public class MapGenerator : MonoBehaviour
 
     }
 
-    public static float[,] GetNeighborChunkHeightMap(Vector2 simpleCoord, Vector2 step)
+    void SetShaderData(Dictionary<Vector2, float[,]> humidityMapDictionary, List<Vector2> coordList)
     {
-        simpleCoord += step;
-        if (terrainDataDictionary.ContainsKey(simpleCoord))
-            return terrainDataDictionary[simpleCoord].GetHeightMap();
-        else 
-            return null;
-    } 
+        float[,] sharedHumidityMap = CombineNoiseMaps(humidityMapDictionary, coordList);
+        Texture2D hmTexture = noiseDisplay.GenerateNoiseMapTexture(sharedHumidityMap);
+        ShaderData sd = new ShaderData(noiseDisplay.customMaterial, mapSizeX, mapSizeY, chunkSize, chunkSize, hmTexture, noiseDisplay.regionMap);
+        sd.SetMaxMinHeights(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0));
+        noiseDisplay.regionMap.SetShaderData(sd);
+    }
 
     public void ClearTerrainDictionary()
     {        

@@ -14,6 +14,8 @@ public class RegionMapEditor : Editor
     const int maxIncRegCount = 16;
     const int maxRegionCount = 128;
 
+    bool autoUpdateShader = true;
+
     public override void OnInspectorGUI()
     {
         serializableObject = (RegionMap)target;        
@@ -25,7 +27,7 @@ public class RegionMapEditor : Editor
             }
         }
 
-        serializableObject.regionsBlend = EditorGUILayout.Slider("Region blend amount", serializableObject.regionsBlend, 0f, 0.5f);
+        serializableObject.biomsBlend = EditorGUILayout.Slider("Bioms blend amount", serializableObject.biomsBlend, 0f, 0.5f);
 
         if (serializableObject.humidityLevels.Count > 0) { // humidity levels
             
@@ -59,7 +61,7 @@ public class RegionMapEditor : Editor
                 } else EditorGUILayout.LabelField("Region list is empty!");
 
                 GUILayout.Space(5);
-                if (hd.includedRegions.Count < maxIncRegCount) {
+                if (serializableObject.regions.Count > 0 && hd.includedRegions.Count < maxIncRegCount) {
                     if (GUILayout.Button("Add", GUILayout.Width(50))) {
                         hd.includedRegions.Add(new IncludedRegion());
                         serializableObject.UpdateIndices();
@@ -101,8 +103,9 @@ public class RegionMapEditor : Editor
         GUILayout.Space(50);
 
         GUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Auto update shader");
-        serializableObject.autoUpdateShader = EditorGUILayout.Toggle(serializableObject.autoUpdateShader);
+
+        EditorGUILayout.LabelField("Auto update shader");        
+        autoUpdateShader = EditorGUILayout.Toggle(autoUpdateShader);
         GUILayout.EndHorizontal();
 
         if (serializableObject.regions.Count > 0) { //Regions
@@ -119,7 +122,7 @@ public class RegionMapEditor : Editor
                 region.slopeColor = EditorGUILayout.ColorField("Slope color", region.slopeColor);
                 region.slopeThreshold = EditorGUILayout.Slider("Slope threshold", region.slopeThreshold, 0f, 1f);
                 region.slopeBlendAmount = EditorGUILayout.Slider("Slope blend amount", region.slopeBlendAmount, 0f, 1f);
-                region.regionBlendAmount = EditorGUILayout.Slider("Region blend amount", region.regionBlendAmount, 0f, 1f);
+                region.regionBlendAmount = EditorGUILayout.Slider("Region blend amount", region.regionBlendAmount, 0f, 0.5f);
 
                 GUILayout.Space(15);
 
@@ -160,6 +163,9 @@ public class RegionMapEditor : Editor
         }
 
         if (GUI.changed) {
+            if (autoUpdateShader) {
+                serializableObject.UpdateAndApplyShaderData();
+            }
             EditorUtility.SetDirty(serializableObject);
             EditorSceneManager.MarkSceneDirty(serializableObject.gameObject.scene);
         }
