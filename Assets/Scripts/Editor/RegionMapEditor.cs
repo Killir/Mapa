@@ -14,7 +14,7 @@ public class RegionMapEditor : Editor
     const int maxIncRegCount = 16;
     const int maxRegionCount = 128;
 
-    bool autoUpdateShader = true;
+    bool autoUpdateShader;
 
     public override void OnInspectorGUI()
     {
@@ -103,10 +103,11 @@ public class RegionMapEditor : Editor
         GUILayout.Space(50);
 
         GUILayout.BeginHorizontal();
-
         EditorGUILayout.LabelField("Auto update shader");        
         autoUpdateShader = EditorGUILayout.Toggle(autoUpdateShader);
         GUILayout.EndHorizontal();
+
+        serializableObject.textureSize = EditorGUILayout.IntField("Texture size", serializableObject.textureSize);
 
         if (serializableObject.regions.Count > 0) { //Regions
 
@@ -117,6 +118,21 @@ public class RegionMapEditor : Editor
                 EditorGUILayout.BeginVertical("box");
 
                 region.name = EditorGUILayout.TextField("Name", region.name);
+                GUILayout.Space(8);
+                GUILayout.BeginHorizontal();
+                GUILayout.BeginVertical();
+                GUILayout.Label("Main texture");
+                region.mainTexture = (Texture2D)EditorGUILayout.ObjectField(region.mainTexture, typeof(Texture2D), false, GUILayout.Width(80), GUILayout.Height(80));
+                GUILayout.EndVertical();
+                GUILayout.BeginVertical();
+                GUILayout.Label("Slope texture");
+                region.slopeTexture = (Texture2D)EditorGUILayout.ObjectField(region.slopeTexture, typeof(Texture2D), false, GUILayout.Width(80), GUILayout.Height(80));
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+                region.scale = EditorGUILayout.FloatField("Scale", region.scale);
+                GUILayout.Space(10);
+
+                region.colorStrenght = EditorGUILayout.Slider("Color strenght", region.colorStrenght, 0f, 1f);
                 region.height = EditorGUILayout.Slider("Height", region.height, 0f, 1f);
                 region.mainColor = EditorGUILayout.ColorField("Main color", region.mainColor);
                 region.slopeColor = EditorGUILayout.ColorField("Slope color", region.slopeColor);
@@ -142,7 +158,7 @@ public class RegionMapEditor : Editor
 
                 GUILayout.Space(Screen.width - 200);
 
-                
+
                 if (GUILayout.Button("Delete", GUILayout.Width(50))) {
                     serializableObject.DeleteRegion(region);
                     break;

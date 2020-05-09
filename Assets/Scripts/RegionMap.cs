@@ -11,6 +11,8 @@ public class RegionMap : MonoBehaviour
     public List<HumidityData> humidityLevels = new List<HumidityData>();
     public List<RegionData> regions = new List<RegionData>();
 
+    public int textureSize = 512;
+
     ShaderData sd = null;
 
     public RegionData Evaluate(float height, float humidity)
@@ -265,15 +267,15 @@ public class IncludedRegion
 public class RegionData
 {
     public string name = "Choose region";
-    [Range(0f, 1f)]
     public float height;
-    public Color mainColor;
-    public Color slopeColor;
-    [Range(0f, 1f)]
+    public Texture2D mainTexture;
+    public Texture2D slopeTexture;
+    public float scale = 1f;
+    public float colorStrenght = 1f;
+    public Color mainColor = new Color(0f, 0f, 0f, 1f);
+    public Color slopeColor = new Color(0f, 0f, 0f, 1f);
     public float slopeThreshold = 0.5f;
-    [Range(0f, 1f)]
     public float slopeBlendAmount = 0.7f;
-    [Range(0f, 0.5f)]
     public float regionBlendAmount = 0.25f;
 }
 
@@ -281,6 +283,7 @@ public class ShaderData
 {
     const int maxHDCount = 8;
     const int maxRegionCount = 128;
+    const TextureFormat textureFormat = TextureFormat.RGB565;
 
     Material material;
 
@@ -288,6 +291,7 @@ public class ShaderData
     int[] hdLenghts = new int[maxHDCount];
     int[] hdIncRegs = new int[maxRegionCount];
 
+    int textureSize;
     float biomsBlend;
     int mapWidth;
     int mapHeight;
@@ -298,6 +302,10 @@ public class ShaderData
 
     Texture2D humidityMap;
 
+    Texture2D[] mainTextures = new Texture2D[maxRegionCount];
+    Texture2D[] slopeTextures = new Texture2D[maxRegionCount];
+    float[] scales = new float[maxRegionCount];
+    float[] colorStrenghts = new float[maxRegionCount];
     Color[] mainColors = new Color[maxRegionCount];
     Color[] slopeColors = new Color[maxRegionCount];
     float[] heights = new float[maxRegionCount];
@@ -327,6 +335,7 @@ public class ShaderData
 
     public void SetRegionMapValues(RegionMap regionMap)
     {
+        textureSize = regionMap.textureSize;
         hdCount = 0;
         foreach (HumidityData hd in regionMap.humidityLevels) {
             if (hd.isActive) {
@@ -337,6 +346,10 @@ public class ShaderData
         hdIncRegs = regionMap.GetAllIncludedRegions(hdIncRegs);
         biomsBlend = regionMap.biomsBlend;
 
+        mainTextures = regionMap.regions.Select(x => x.mainTexture).ToArray();
+        slopeTextures = regionMap.regions.Select(x => x.slopeTexture).ToArray();
+        scales = GetSizedArray(regionMap.regions.Select(x => x.scale).ToArray(), scales);
+        colorStrenghts = GetSizedArray(regionMap.regions.Select(x => x.colorStrenght).ToArray(), colorStrenghts);
         mainColors = GetSizedArray(regionMap.regions.Select(x => x.mainColor).ToArray(), mainColors);
         slopeColors = GetSizedArray(regionMap.regions.Select(x => x.slopeColor).ToArray(), slopeColors);
         heights = GetSizedArray(regionMap.regions.Select(x => x.height).ToArray(), heights);
@@ -349,6 +362,16 @@ public class ShaderData
     {
         maxHeight = NoiseGenerator.GetMaxValue(heightMapIndex) * maxHeightMultiplier;
         minHeight = NoiseGenerator.GetMinValue(heightMapIndex) * minHeightMultiplier;
+    }
+
+    Texture2DArray GetTextureArray(Texture2D[] array)
+    {
+        Texture2DArray textureArray = new Texture2DArray(textureSize, textureSize, array.Length, textureFormat, true);
+        for (int i = 0; i < array.Length; i++) {
+            textureArray.SetPixels(array[i].GetPixels(), i);
+        }
+        textureArray.Apply();
+        return textureArray;
     }
 
     public void SetShaderValue()
@@ -377,6 +400,12 @@ public class ShaderData
         material.SetFloat("minHeight", minHeight);
         material.SetTexture("humidityMap", humidityMap);
 
+        Texture2DArray mainTexturesArray = GetTextureArray(mainTextures);
+        material.SetTexture("mainTexturesArray", mainTexturesArray);
+        Texture2DArray slopeTexturesArray = GetTextureArray(slopeTextures);
+        material.SetTexture("slopeTexturesArray", slopeTexturesArray);
+        material.SetFloatArray("scales", scales);
+        material.SetFloatArray("colorStrenghts", colorStrenghts);
         material.SetColorArray("mainColors", mainColors);
         material.SetColorArray("slopeColors", slopeColors);
         material.SetFloatArray("heights", heights);
