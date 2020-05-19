@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,11 +9,30 @@ public class MapGeneratorEditor : Editor
 
     bool generationIsAllowed = false;
 
+    void SaveTerrainAsAsset()
+    {
+        foreach (KeyValuePair<Vector2, TerrainData> kvp in MapGenerator.terrainDataDictionary) {
+            GameObject obj = kvp.Value.GetGameObject();
+            string path = "Assets/Saved Terrains/" + obj.name + ".prefab";
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+            
+            GameObject prefRef = Instantiate(obj);
+            Mesh prefMesh = obj.GetComponent<MeshFilter>().sharedMesh;
+            GameObject pref = PrefabUtility.SaveAsPrefabAssetAndConnect(prefRef, path, InteractionMode.UserAction);
+            AssetDatabase.AddObjectToAsset(prefMesh, path);
+            pref.GetComponent<MeshFilter>().sharedMesh = prefMesh;
+
+            AssetDatabase.SaveAssets();
+            DestroyImmediate(prefRef);
+        }
+    }
+
     public override void OnInspectorGUI()
     {
         MapGenerator mapGenerator = (MapGenerator)target;
 
-        if (mapGenerator.chunkSize * (mapGenerator.levelOfDetail * 2) * mapGenerator.chunkSize * (mapGenerator.levelOfDetail * 2) >= 65000) {
+        int LOD = mapGenerator.levelOfDetail == 0 ? 1 : mapGenerator.levelOfDetail * 2;
+        if (mapGenerator.chunkSize * (LOD) * mapGenerator.chunkSize * (LOD) >= 65000) {
             generationIsAllowed = false;
             EditorGUILayout.HelpBox("The number of verticles should not exceed 65000", MessageType.Error);
         } else {
@@ -36,6 +56,12 @@ public class MapGeneratorEditor : Editor
 
         if (GUILayout.Button("Clear Terrain")) {
             mapGenerator.ClearTerrainDictionary();
+        }
+
+        GUILayout.Space(10);
+
+        if (GUILayout.Button("Save terrain as prefab")) {
+            SaveTerrainAsAsset();
         }
 
     }

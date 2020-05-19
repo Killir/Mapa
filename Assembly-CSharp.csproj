@@ -68,8 +68,10 @@
     <Compile Include="Assets\Scripts\MapGenerator.cs" />
     <Compile Include="Assets\Scripts\NoiseDisplay.cs" />
     <Compile Include="Assets\Scripts\NoiseGenerator.cs" />
+    <Compile Include="Assets\Scripts\PoissonDiskSampling.cs" />
     <Compile Include="Assets\Scripts\RegionMap.cs" />
     <Compile Include="Assets\Scripts\TerrainMeshGenerator.cs" />
+    <Compile Include="Assets\Scripts\TerrainObjectManager.cs" />
     <None Include="Assets\Seeds.txt" />
     <None Include="Assets\Shaders\Terrain.shader" />
     <Reference Include="Unity.Timeline.Editor">

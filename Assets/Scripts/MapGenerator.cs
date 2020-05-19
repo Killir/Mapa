@@ -7,7 +7,7 @@ public class MapGenerator : MonoBehaviour
 {
 
     public enum DrawType { heightMap, humidityMap, colorMap, terrain_customMaterial, terrain_colorMap }
-    const int borderSize = 1;
+    public const int borderSize = 1;
 
     [Header ("Map parameters")]
     [Range(1,10)]
@@ -17,6 +17,8 @@ public class MapGenerator : MonoBehaviour
     public int chunkSize;
     [Range(0, 5)]
     public int levelOfDetail;
+    public bool generateObjects;
+    public TerrainObjectManager terrainObjectManager;
 
     [Header("Mesh parameters")]
     public AnimationCurve heightCurve;
@@ -46,7 +48,9 @@ public class MapGenerator : MonoBehaviour
     public bool autoUpdate;
 
     public static float borderShift = 0f;
-    static Dictionary<Vector2, TerrainData> terrainDataDictionary = new Dictionary<Vector2, TerrainData>();
+    public static Dictionary<Vector2, TerrainData> terrainDataDictionary = new Dictionary<Vector2, TerrainData>();
+
+    float[,] sharedHeightMap = null;
     int LOD;
 
     private void Start()
@@ -56,8 +60,11 @@ public class MapGenerator : MonoBehaviour
 
     private void SetNoiseFilters(Dictionary<Vector2, float[,]> noiseMapDictionary, int noiseIndex, List<Vector2> coordList)
     {
+        if (sharedHeightMap == null) {
+            sharedHeightMap = CombineNoiseMaps(noiseMapDictionary, coordList);
+        }
+
         if (erode) {
-            float[,] sharedHeightMap = CombineNoiseMaps(noiseMapDictionary, coordList);
             sharedHeightMap = erosion.Erode(seed, sharedHeightMap, noiseIndex);
             noiseMapDictionary = SeparateNoiseMap(sharedHeightMap, noiseMapDictionary, coordList);
         }
@@ -123,7 +130,7 @@ public class MapGenerator : MonoBehaviour
         return noiseMapDictionary;
     }
 
-    float[,] GetNoiseMap(NoiseData noiseData, Vector2 coord)
+    float[,] GenerateNoiseMap(NoiseData noiseData, Vector2 coord)
     {
         float[,] noiseMap = NoiseGenerator.GenerateNoiseMap(chunkSize , chunkSize, LOD, noiseData, coord);
         return noiseMap;
@@ -145,6 +152,8 @@ public class MapGenerator : MonoBehaviour
 
     void SetTerrainMap()
     {
+        var sw = new System.Diagnostics.Stopwatch();
+        sw.Start();
         Dictionary<Vector2, float[,]> heightMapDictionary = new Dictionary<Vector2, float[,]>();
         Dictionary<Vector2, float[,]> humidityMapDictionary = new Dictionary<Vector2, float[,]>();
         List<Vector2> coordList = new List<Vector2>();
@@ -155,8 +164,8 @@ public class MapGenerator : MonoBehaviour
                 Vector2 realCoord = simpleCoord * (chunkSize - borderShift);
                 coordList.Add(simpleCoord);
 
-                heightMapDictionary.Add(simpleCoord, GetNoiseMap(heightNoiseData, realCoord));
-                humidityMapDictionary.Add(simpleCoord, GetNoiseMap(humidityNoiseData, realCoord));
+                heightMapDictionary.Add(simpleCoord, GenerateNoiseMap(heightNoiseData, realCoord));
+                humidityMapDictionary.Add(simpleCoord, GenerateNoiseMap(humidityNoiseData, realCoord));
             }
         }
 
@@ -176,6 +185,13 @@ public class MapGenerator : MonoBehaviour
             terrainDataDictionary.Add(v, new TerrainData(terrainGameObject, heightMapDictionary[v], humidityMapDictionary[v]));
         }
 
+        if (generateObjects) {
+            terrainObjectManager.GenerateObjects(sharedHeightMap, this);
+        }
+
+        sw.Stop();
+        Debug.Log("Time: " + sw.ElapsedMilliseconds + " milliseconds");
+
     }
 
     void SetShaderData(Dictionary<Vector2, float[,]> humidityMapDictionary, List<Vector2> coordList)
@@ -183,8 +199,13 @@ public class MapGenerator : MonoBehaviour
         float[,] sharedHumidityMap = CombineNoiseMaps(humidityMapDictionary, coordList);
         Texture2D hmTexture = noiseDisplay.GenerateNoiseMapTexture(sharedHumidityMap);
         ShaderData sd = new ShaderData(noiseDisplay.customMaterial, mapSizeX, mapSizeY, chunkSize, chunkSize, hmTexture, noiseDisplay.regionMap);
-        sd.SetMaxMinHeights(heightNoiseData.noiseIndex, heightMultiplier * heightCurve.Evaluate(1), heightMultiplier * heightCurve.Evaluate(0));
+        sd.SetMaxMinHeights(heightNoiseData.noiseIndex, GetHeightAt(1), GetHeightAt(0));
         noiseDisplay.regionMap.SetShaderData(sd);
+    }
+
+    public float GetHeightAt(float value)
+    {
+        return heightMultiplier * heightCurve.Evaluate(value);
     }
 
     public void ClearTerrainDictionary()
@@ -194,6 +215,7 @@ public class MapGenerator : MonoBehaviour
         }
         terrainDataDictionary.Clear();
         NoiseGenerator.ClearMaxMinValue();
+        sharedHeightMap = null;
     }
 
     public void GenerateMap()
@@ -202,25 +224,25 @@ public class MapGenerator : MonoBehaviour
         NoiseGenerator.SetSeed(seed);
 
         LOD = levelOfDetail == 0 ? 1 : levelOfDetail * 2;
-        borderShift = (float)(borderSize * 3) / LOD; // почему 3? хз!
+        borderShift = (float)(borderSize * 3) / LOD;
 
         switch (drawMode) {
             case DrawType.heightMap:
-                float[,] heightMap = GetNoiseMap(heightNoiseData, Vector2.zero);
+                float[,] heightMap = GenerateNoiseMap(heightNoiseData, Vector2.zero);
                 heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
                 SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
                 FindObjectOfType<NoiseDisplay>().DrawHeightMap(heightMap);
                 break;
             case DrawType.humidityMap:
-                float[,] humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
+                float[,] humidityMap = GenerateNoiseMap(humidityNoiseData, Vector2.zero);
                 humidityMap = NoiseGenerator.NormilazeNoiseMap(humidityMap, humidityNoiseData.noiseIndex);
                 FindObjectOfType<NoiseDisplay>().DrawHeightMap(humidityMap);
                 break;
             case DrawType.colorMap:
-                heightMap = GetNoiseMap(heightNoiseData, Vector2.zero);
+                heightMap = GenerateNoiseMap(heightNoiseData, Vector2.zero);
                 heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
                 SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
-                humidityMap = GetNoiseMap(humidityNoiseData, Vector2.zero);
+                humidityMap = GenerateNoiseMap(humidityNoiseData, Vector2.zero);
                 FindObjectOfType<NoiseDisplay>().DrawColorMap(heightMap, humidityMap);
                 break;
             default:

@@ -11,7 +11,8 @@ public class RegionMap : MonoBehaviour
     public List<HumidityData> humidityLevels = new List<HumidityData>();
     public List<RegionData> regions = new List<RegionData>();
 
-    public int textureSize = 512;
+    public int textureSize;
+    public bool useTextures;
 
     ShaderData sd = null;
 
@@ -180,6 +181,17 @@ public class RegionMap : MonoBehaviour
 
     }
 
+    public void SwitchColorStrenghts(bool useTextures)
+    {
+        foreach (RegionData region in regions) {
+            if (useTextures) {
+                region.colorStrenght = 0f;
+            } else {
+                region.colorStrenght = 1f;
+            }
+        }        
+    }
+
     public void SortRegionDataList()
     {
         foreach (HumidityData hd in humidityLevels) {
@@ -291,6 +303,8 @@ public class ShaderData
     int[] hdLenghts = new int[maxHDCount];
     int[] hdIncRegs = new int[maxRegionCount];
 
+    bool useTextures;
+
     int textureSize;
     float biomsBlend;
     int mapWidth;
@@ -321,6 +335,7 @@ public class ShaderData
         this.chunkHeight = chunkHeight;
         this.material = material;
         this.humidityMap = humidityMap;
+        useTextures = regionMap.useTextures;
 
         SetRegionMapValues(regionMap);
     }
@@ -346,8 +361,10 @@ public class ShaderData
         hdIncRegs = regionMap.GetAllIncludedRegions(hdIncRegs);
         biomsBlend = regionMap.biomsBlend;
 
-        mainTextures = regionMap.regions.Select(x => x.mainTexture).ToArray();
-        slopeTextures = regionMap.regions.Select(x => x.slopeTexture).ToArray();
+        if (useTextures) {
+            mainTextures = regionMap.regions.Select(x => x.mainTexture).ToArray();
+            slopeTextures = regionMap.regions.Select(x => x.slopeTexture).ToArray();
+        }
         scales = GetSizedArray(regionMap.regions.Select(x => x.scale).ToArray(), scales);
         colorStrenghts = GetSizedArray(regionMap.regions.Select(x => x.colorStrenght).ToArray(), colorStrenghts);
         mainColors = GetSizedArray(regionMap.regions.Select(x => x.mainColor).ToArray(), mainColors);
@@ -400,10 +417,12 @@ public class ShaderData
         material.SetFloat("minHeight", minHeight);
         material.SetTexture("humidityMap", humidityMap);
 
-        Texture2DArray mainTexturesArray = GetTextureArray(mainTextures);
-        material.SetTexture("mainTexturesArray", mainTexturesArray);
-        Texture2DArray slopeTexturesArray = GetTextureArray(slopeTextures);
-        material.SetTexture("slopeTexturesArray", slopeTexturesArray);
+        if (useTextures) {
+            Texture2DArray mainTexturesArray = GetTextureArray(mainTextures);
+            material.SetTexture("mainTexturesArray", mainTexturesArray);
+            Texture2DArray slopeTexturesArray = GetTextureArray(slopeTextures);
+            material.SetTexture("slopeTexturesArray", slopeTexturesArray);
+        }
         material.SetFloatArray("scales", scales);
         material.SetFloatArray("colorStrenghts", colorStrenghts);
         material.SetColorArray("mainColors", mainColors);
