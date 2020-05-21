@@ -4,16 +4,20 @@ using UnityEngine;
 public static class PoissonDiskSampling
 {
 
-    public static List<Vector2> GeneratePoints(int seed, int width, int height, int chunkCount, float radius, int iterationCount)
+    public static List<Vector2> GeneratePoints(int seed, int width, int height, int LOD, int chunkCount, float radius, int iterationCount)
     {
         System.Random prng = new System.Random(seed);
         float cellSize = radius / Mathf.Sqrt(2);
+        float minPosition = 1f / LOD;
+        float maxPositionX = (float)(width - MapGenerator.borderSize * 2) / LOD;
+        float maxPositionY = (float)(height - MapGenerator.borderSize * 2) / LOD;
+
         List<Vector2> points = new List<Vector2>();
         List<Vector2> spawnPoints = new List<Vector2>();
-        int[,] pointsMap = new int[Mathf.CeilToInt(width / cellSize), Mathf.CeilToInt(height / cellSize)];
+        int[,] pointsMap = new int[Mathf.CeilToInt(maxPositionX / cellSize), Mathf.CeilToInt(maxPositionY / cellSize)];
 
         for (int j = 0; j < chunkCount; j++) {            
-            Vector2 startSpawnPoints = new Vector2(prng.Next(1, width - MapGenerator.borderSize - 1), prng.Next(1, height - MapGenerator.borderSize - 1));
+            Vector2 startSpawnPoints = new Vector2(NextFloat(prng, minPosition, maxPositionX), NextFloat(prng, minPosition, maxPositionY));
             spawnPoints.Add(startSpawnPoints);
 
             while (spawnPoints.Count > 0) {
@@ -24,8 +28,8 @@ public static class PoissonDiskSampling
                 for (int i = 0; i < iterationCount; i++) {
                     float angle = (float)prng.NextDouble() * (Mathf.PI * 2);
                     Vector2 direction = new Vector2(Mathf.Sin(angle), Mathf.Cos(angle));
-                    Vector2 pointPosition = spawnPosition + (direction * (radius + (float)prng.NextDouble() * radius));
-                    if (IsValid(pointPosition, width, height, cellSize, radius, points, pointsMap)) {
+                    Vector2 pointPosition = spawnPosition + (direction * NextFloat(prng, radius, radius * 2));
+                    if (IsValid(pointPosition, minPosition, maxPositionX, maxPositionY, cellSize, radius, points, pointsMap)) {
                         isPlaceFound = true;
                         points.Add(pointPosition);
                         spawnPoints.Add(pointPosition);
@@ -44,9 +48,9 @@ public static class PoissonDiskSampling
         return points;
     }
 
-    static bool IsValid(Vector2 pointPosition, int width, int height, float cellSize, float radius, List<Vector2> points, int[,] pointsMap)
+    static bool IsValid(Vector2 pointPosition, float minPosition, float maxPositionX, float maxPositionY, float cellSize, float radius, List<Vector2> points, int[,] pointsMap)
     {
-        if (pointPosition.x >= MapGenerator.borderSize && pointPosition.x < width - MapGenerator.borderSize - 1 && pointPosition.y >= MapGenerator.borderSize && pointPosition.y < height - MapGenerator.borderSize - 1) {
+        if (pointPosition.x >= minPosition && pointPosition.x < maxPositionX && pointPosition.y >= minPosition && pointPosition.y < maxPositionY) {
             int cellX = (int)(pointPosition.x / cellSize);
             int cellY = (int)(pointPosition.y / cellSize);
             int searchStartX = Mathf.Max(0, cellX - 2);
@@ -68,6 +72,11 @@ public static class PoissonDiskSampling
             return true;
         }
         return false;
+    }
+
+    static float NextFloat(System.Random prng, float minValue, float maxValue)
+    {
+        return Mathf.Lerp(minValue, maxValue, (float)prng.NextDouble());
     }
 
 }

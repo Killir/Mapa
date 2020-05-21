@@ -48,10 +48,10 @@ public class MapGenerator : MonoBehaviour
     public bool autoUpdate;
 
     public static float borderShift = 0f;
+    public static int LOD = 1;
     public static Dictionary<Vector2, TerrainData> terrainDataDictionary = new Dictionary<Vector2, TerrainData>();
 
     float[,] sharedHeightMap = null;
-    int LOD;
 
     private void Start()
     {
