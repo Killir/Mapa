@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Editor\MapGeneratorEditor.cs" />
     <Compile Include="Assets\Scripts\Editor\RegionMapEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\TerrainObjectManagerEditor.cs" />
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>C:/Unity Projects/Mapa/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
     </Reference>
