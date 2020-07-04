@@ -1,6 +1,8 @@
 ﻿Shader "Custom/Terrain" {
     Properties{
+        _BlendNoise("Blend Noise", 2D) = "white" {}
         _HumidityMap("Humidity map", 2D) = "white" {}
+        _BlendNoiseScale("Blend noise scale", Float) = 1
         _BiomsBlend("Bioms blend", Range(0, 0.5)) = 0.25
     }
         SubShader
@@ -16,7 +18,9 @@
         const static int maxIncRegCount = 16;
         const static int maxRegCount = 128;
 
+        sampler2D _BlendNoise;
         sampler2D _HumidityMap;
+        half _BlendNoiseScale;
         half _BiomsBlend;
 
         UNITY_DECLARE_TEX2DARRAY(mainTexturesArray);
@@ -68,6 +72,18 @@
             return xProjection + yProjection + zProjection;
         }
 
+        float3 CalculateColor(Input IN, uint index, float3 blendAxes) {
+            float slope = 1 - IN.worldNormal.y;
+            float blendHeight = slopeThresholds[index] * (1 - slopeBlendAmounts[index]);
+            float mainWeight = 1 - InverseLerp(blendHeight, slopeThresholds[index], slope);
+
+            float3 currentColor = (mainColors[index] * mainWeight + slopeColors[index] * (1 - mainWeight)) * colorStrenghts[index];
+            float3 mainTextureColor = MainTriplanar(IN.worldPos, scales[index], blendAxes, index);
+            float3 slopeTextureColor = SlopeTriplanar(IN.worldPos, scales[index], blendAxes, index);
+            float3 currentTextureColor = (mainTextureColor * mainWeight + slopeTextureColor * (1 - mainWeight)) * (1 - colorStrenghts[index]);
+            return currentColor + currentTextureColor;
+        }
+
         void surf(Input IN, inout SurfaceOutputStandard o) {
             uint hdLenghts[maxHDCount];
             uint hdIncRegs[maxRegCount];
@@ -86,6 +102,7 @@
             float humidityRange = (float)1 / hdCount;
             float2 coord = float2(IN.worldPos.x / (chunkWidth * mapWidth), IN.worldPos.z / (chunkHeight * mapHeight));
             float humidityValue = tex2D(_HumidityMap, coord).r;
+            float3 noiseBlendAmount = tex2D(_BlendNoise, float2(IN.worldPos.x / _BlendNoiseScale, IN.worldPos.z / _BlendNoiseScale));
 
             for (uint i = 0; i < hdCount; i++) {  
                 float biomBlendHeight = _BiomsBlend * InverseLerp(0, _BiomsBlend, humidityValue);
@@ -105,19 +122,13 @@
                 float3 heightColor = float3(0, 0, 0);
                 for (uint h = 0; h < hdLenght; h++) {
                     uint index = incReg[h];
-                    float drawStrenght = InverseLerp(-regionBlendAmounts[index] - epsilon, regionBlendAmounts[index], heightPercent - heights[index]);
+                    float heightValue = (heightPercent - heights[index]) * noiseBlendAmount.r;
+                    float drawStrenght = InverseLerp(-regionBlendAmounts[index] - epsilon, regionBlendAmounts[index], heightValue);
 
-                    float slope = 1 - IN.worldNormal.y;
-                    float blendHeight = slopeThresholds[index] * (1 - slopeBlendAmounts[index]);
-                    float mainWeight = 1 - InverseLerp(blendHeight, slopeThresholds[index], slope);
-
-                    float3 currentColor = (mainColors[index] * mainWeight + slopeColors[index] * (1 - mainWeight)) * colorStrenghts[index];
-                    float3 mainTextureColor = MainTriplanar(IN.worldPos, scales[index], blendAxes, index);
-                    float3 slopeTextureColor = SlopeTriplanar(IN.worldPos, scales[index], blendAxes, index);
-                    float3 currentTextureColor = (mainTextureColor * mainWeight + slopeTextureColor * (1 - mainWeight)) * (1 - colorStrenghts[index]);
-
-                    heightColor = heightColor * (1 - drawStrenght) + (currentColor + currentTextureColor) * drawStrenght;
+                    float3 nextColor = CalculateColor(IN, index, blendAxes);
+                    heightColor = heightColor * (1 - drawStrenght) + nextColor * drawStrenght;
                 }
+
                 o.Albedo = o.Albedo * (1 - humidityStrenght) + heightColor * humidityStrenght;
             }
 

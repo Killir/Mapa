@@ -1,0 +1,454 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7523621084503549119
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523621084503549106}
+  - component: {fileID: 7523621084503549105}
+  - component: {fileID: 7523621084503549104}
+  m_Layer: 0
+  m_Name: Map manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7523621084503549106
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084503549119}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 7523621084506527682}
+  - {fileID: 7523621085288747740}
+  - {fileID: 7523621084989125955}
+  - {fileID: 7523621084924678958}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7523621084503549105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084503549119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cfa59d0de0b182419d949a9c79af783, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapSizeX: 1
+  mapSizeY: 1
+  chunkSize: 100
+  levelOfDetail: 0
+  generateObjects: 1
+  terrainObjectManager: {fileID: 7523621084506527683}
+  heightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  seed: 177761994
+  erode: 1
+  erosion: {fileID: 7523621084989125956}
+  cascadeNoiseFilter: 0
+  cascadeCount: 15
+  CNFintensity: 0
+  heightNoiseData: {fileID: 11400000, guid: 24f8dfe5ac9e1d843ad92a51d457cb28, type: 2}
+  heightMultiplier: 40
+  humidityNoiseData: {fileID: 11400000, guid: 0c38c48e5682b8c47b81468632a4ce50, type: 2}
+  noiseDisplay: {fileID: 7523621084503549104}
+  drawMode: 3
+  autoUpdate: 0
+--- !u!114 &7523621084503549104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084503549119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd4142e4323395e4a90d77732bc5b4bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noiseDisplay: {fileID: 7523621084924678954}
+  chunkPrefab: {fileID: 8800676656223191465, guid: f1a8b5e0f489e1d4583556af5810a8ee,
+    type: 3}
+  regionMap: {fileID: 7523621085288747741}
+  customMaterial: {fileID: 2100000, guid: f037405ac4f8ead4d934297f2ef3b47b, type: 2}
+--- !u!1 &7523621084506527681
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523621084506527682}
+  - component: {fileID: 7523621084506527683}
+  m_Layer: 0
+  m_Name: Terrain object manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7523621084506527682
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084506527681}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 7523621084503549106}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7523621084506527683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084506527681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af4e2a0548d7034eac5138ace834a5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objects:
+  - obj: {fileID: 7149193343576151302, guid: 36121dae78aa1de4091488b068acdb0a, type: 3}
+    spawnRadius: 1.21
+    spawnIterationCount: 30
+    minSpawnHeight: 0.3
+    maxSpawnHeight: 0.7
+    spawnHeightOffset: 0
+    maxSpawnSlopeValue: 0.007
+    scaleFactor: 0.65
+--- !u!1 &7523621084924678954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523621084924678958}
+  - component: {fileID: 7523621084924678957}
+  - component: {fileID: 7523621084924678956}
+  - component: {fileID: 7523621084924678955}
+  m_Layer: 0
+  m_Name: NoiseDisplay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &7523621084924678958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084924678954}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 3, y: 1, z: 3}
+  m_Children: []
+  m_Father: {fileID: 7523621084503549106}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &7523621084924678957
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084924678954}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &7523621084924678956
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084924678954}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!64 &7523621084924678955
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084924678954}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &7523621084989125954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523621084989125955}
+  - component: {fileID: 7523621084989125956}
+  m_Layer: 0
+  m_Name: Erosion
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7523621084989125955
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084989125954}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 7523621084503549106}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7523621084989125956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621084989125954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbc50c80e94af34b87ff95176fa3368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debug: 0
+  iterationCount: 40000
+  particleLifetime: 30
+  depositionRate: 0.3
+  evaporationRate: 0.05
+  startVolume: 1
+--- !u!1 &7523621085288747739
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7523621085288747740}
+  - component: {fileID: 7523621085288747741}
+  m_Layer: 0
+  m_Name: Region map
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7523621085288747740
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621085288747739}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 7523621084503549106}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7523621085288747741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523621085288747739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66df9800fb171f642ab46aed5ec2c389, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  biomsBlend: 0.122
+  humidityLevels:
+  - name: Forest
+    isActive: 1
+    includedRegions:
+    - index: 0
+    - index: 1
+    - index: 2
+    - index: 3
+    - index: 4
+    - index: 5
+    - index: 6
+  - name: Winter
+    isActive: 0
+    includedRegions:
+    - index: 7
+  regions:
+  - name: Deep water
+    height: 0
+    mainTexture: {fileID: 2800000, guid: 98d9aa88e1710eb489bf9a5d356c8690, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 98d9aa88e1710eb489bf9a5d356c8690, type: 3}
+    scale: 3.86
+    colorStrenght: 1
+    mainColor: {r: 0.2627451, g: 0.34117648, b: 0.31039822, a: 1}
+    slopeColor: {r: 0.5294118, g: 0.5137255, b: 0.37254903, a: 1}
+    slopeThreshold: 0.5
+    slopeBlendAmount: 0.7
+    regionBlendAmount: 0
+  - name: Water
+    height: 0.12
+    mainTexture: {fileID: 2800000, guid: 98d9aa88e1710eb489bf9a5d356c8690, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 98d9aa88e1710eb489bf9a5d356c8690, type: 3}
+    scale: 4.09
+    colorStrenght: 1
+    mainColor: {r: 0.37254903, g: 0.5294118, b: 0.4317474, a: 1}
+    slopeColor: {r: 0.6366248, g: 0.7264151, b: 0.5036935, a: 1}
+    slopeThreshold: 0.1
+    slopeBlendAmount: 0.7
+    regionBlendAmount: 0.04
+  - name: Beach
+    height: 0.225
+    mainTexture: {fileID: 2800000, guid: de00b8975f065aa4dbcfe0bacecbeff7, type: 3}
+    slopeTexture: {fileID: 2800000, guid: bab882de417f08340b357cf80f2734de, type: 3}
+    scale: 2.35
+    colorStrenght: 1
+    mainColor: {r: 0.9339623, g: 0.8873481, b: 0.48900855, a: 1}
+    slopeColor: {r: 0.7075472, g: 0.67387694, b: 0.39048594, a: 1}
+    slopeThreshold: 0.2
+    slopeBlendAmount: 0.59
+    regionBlendAmount: 0
+  - name: Grass
+    height: 0.24
+    mainTexture: {fileID: 2800000, guid: d26386e094725014e9d86c4140358719, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 27b1bfb62506a774f8d3ab3e99cc4a44, type: 3}
+    scale: 8
+    colorStrenght: 1
+    mainColor: {r: 0.34380114, g: 0.3962264, b: 0.11027056, a: 1}
+    slopeColor: {r: 0.29799998, g: 0.24962646, b: 0.15019199, a: 1}
+    slopeThreshold: 0.37
+    slopeBlendAmount: 0.7
+    regionBlendAmount: 0.033
+  - name: Dark Grass
+    height: 0.4
+    mainTexture: {fileID: 2800000, guid: 16de8fc4b1affce4b98e39256633cfa2, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 03c284fa05f4ada499f8cd80b6417d51, type: 3}
+    scale: 4.35
+    colorStrenght: 1
+    mainColor: {r: 0.24638388, g: 0.3301887, b: 0.09812211, a: 1}
+    slopeColor: {r: 0.22, g: 0.17122948, b: 0.065560006, a: 1}
+    slopeThreshold: 0.15
+    slopeBlendAmount: 0.8
+    regionBlendAmount: 0.1
+  - name: Rock
+    height: 0.56
+    mainTexture: {fileID: 2800000, guid: dcc980f66959670468a99f5044c358cb, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 65ae704b204fc6f44804034b078d7fae, type: 3}
+    scale: 9
+    colorStrenght: 1
+    mainColor: {r: 0.39513177, g: 0.40392157, b: 0.19607845, a: 1}
+    slopeColor: {r: 0.3254902, g: 0.29133645, b: 0.2031059, a: 1}
+    slopeThreshold: 0.16
+    slopeBlendAmount: 0.7
+    regionBlendAmount: 0.08
+  - name: Mountain snow
+    height: 0.8
+    mainTexture: {fileID: 2800000, guid: 939bc61360ef57844ae158b9a8cf151a, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 65ae704b204fc6f44804034b078d7fae, type: 3}
+    scale: 2
+    colorStrenght: 1
+    mainColor: {r: 1, g: 1, b: 1, a: 1}
+    slopeColor: {r: 0.432, g: 0.432, b: 0.432, a: 1}
+    slopeThreshold: 0.4
+    slopeBlendAmount: 0.34
+    regionBlendAmount: 0.1
+  - name: Snow
+    height: 0
+    mainTexture: {fileID: 2800000, guid: 939bc61360ef57844ae158b9a8cf151a, type: 3}
+    slopeTexture: {fileID: 2800000, guid: 65ae704b204fc6f44804034b078d7fae, type: 3}
+    scale: 5
+    colorStrenght: 1
+    mainColor: {r: 0.94117653, g: 0.94117653, b: 0.94117653, a: 1}
+    slopeColor: {r: 0.31132078, g: 0.30397832, b: 0.30397832, a: 1}
+    slopeThreshold: 0.5
+    slopeBlendAmount: 0.7
+    regionBlendAmount: 0
+  textureSize: 1024
+  useTextures: 0

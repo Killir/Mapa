@@ -9,7 +9,7 @@ public static class TerrainMeshGenerator
     {
         int width = noiseMap.GetLength(0);
         int height = noiseMap.GetLength(1);
-        MeshData meshData = new MeshData(width, height);
+        MeshData meshData = new MeshData();
 
         int borderedVertIndex = -1;
         int meshVertIndex = 0;
@@ -65,7 +65,6 @@ public static class TerrainMeshGenerator
         mesh.triangles = meshData.GetTriangles();
         mesh.uv = meshData.GetUV();
         mesh.normals = meshData.CalculateNormals();
-
         return mesh;
     }
 
@@ -73,19 +72,11 @@ public static class TerrainMeshGenerator
 
 public class MeshData
 {
-    int width;
-    int height;
     List<Vector3> vertices = new List<Vector3>();
     List<Vector3> borderVertices = new List<Vector3>();
     List<int> triangles = new List<int>();
     List<int> borderTriangles = new List<int>();
     List<Vector2> UV = new List<Vector2>();
-
-    public MeshData(int width, int height)
-    {
-        this.width = width;
-        this.height = height;
-    }
 
     public Vector3[] CalculateNormals()
     {

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
 
     public enum DrawType { heightMap, humidityMap, colorMap, terrain_customMaterial, terrain_colorMap }
+
     public const int borderSize = 1;
 
     [Header ("Map parameters")]
@@ -154,6 +153,7 @@ public class MapGenerator : MonoBehaviour
     {
         var sw = new System.Diagnostics.Stopwatch();
         sw.Start();
+
         Dictionary<Vector2, float[,]> heightMapDictionary = new Dictionary<Vector2, float[,]>();
         Dictionary<Vector2, float[,]> humidityMapDictionary = new Dictionary<Vector2, float[,]>();
         List<Vector2> coordList = new List<Vector2>();
@@ -231,19 +231,19 @@ public class MapGenerator : MonoBehaviour
                 float[,] heightMap = GenerateNoiseMap(heightNoiseData, Vector2.zero);
                 heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
                 SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
-                FindObjectOfType<NoiseDisplay>().DrawHeightMap(heightMap);
+                noiseDisplay.DrawHeightMap(heightMap);
                 break;
             case DrawType.humidityMap:
                 float[,] humidityMap = GenerateNoiseMap(humidityNoiseData, Vector2.zero);
                 humidityMap = NoiseGenerator.NormilazeNoiseMap(humidityMap, humidityNoiseData.noiseIndex);
-                FindObjectOfType<NoiseDisplay>().DrawHeightMap(humidityMap);
+                noiseDisplay.DrawHeightMap(humidityMap);
                 break;
             case DrawType.colorMap:
                 heightMap = GenerateNoiseMap(heightNoiseData, Vector2.zero);
                 heightMap = NoiseGenerator.NormilazeNoiseMap(heightMap, heightNoiseData.noiseIndex);
                 SetNoiseFilters(heightMap, heightNoiseData.noiseIndex, Vector2.zero);
                 humidityMap = GenerateNoiseMap(humidityNoiseData, Vector2.zero);
-                FindObjectOfType<NoiseDisplay>().DrawColorMap(heightMap, humidityMap);
+                noiseDisplay.DrawColorMap(heightMap, humidityMap);
                 break;
             default:
                 SetTerrainMap();
